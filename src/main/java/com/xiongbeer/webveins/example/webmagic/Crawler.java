@@ -31,19 +31,20 @@ public class Crawler implements PageProcessor, Action {
             .setSleepTime(1000).setUseGzip(true)
             .setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
     private static Set<String> newUrls = new ConcurrentSet<>();
+    private static AtomicInteger counter;
     private static Spider spider = Spider.create(new Crawler()).thread(3).clearPipeline();
-    private static AtomicInteger counter = new AtomicInteger(0);
+
     /* 每当worker领取到任务以后就会自动的运行这个函数，可以视为一个异步的callback */
     @Override
     public boolean run(String urlFilePath, int progress) {
         try {
     	    /* worker领取到的url存放在一个本地文件夹中，这里提供了一个UrlFileLoader来把其中的url读到内存中 */
             List<String> urlsList = new UrlFileLoader().readFileByLine(urlFilePath);
-            int len = urlsList.size();
+            counter = new AtomicInteger(progress);
     	    /* 读取的url存在list中，读取出来放入爬虫的爬取队列中 */
-    	    for(int i=progress; i<len; ++i){
-    	        spider.addUrl(urlsList.get(i));
-            }
+    	    urlsList.stream()
+                    .skip(progress)
+                    .forEach(url -> spider.addUrl(url));
             spider.run();
             /* 任务执行完毕，上传新的url，为了节省内存你可以选择清空newurls，但也可以选择不清空以此来减轻manager的去重负担，这里选择了保留 */
             CrawlerBootstrap.upLoadNewUrls(newUrls);

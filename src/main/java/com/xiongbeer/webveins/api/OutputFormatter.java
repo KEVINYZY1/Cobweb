@@ -38,9 +38,9 @@ public class OutputFormatter {
 	private String getFormatTable(){
         int limit = fullPrint?Integer.MAX_VALUE:LIMIT;
         int boundLen = 0;
-        List<Integer> colMaxLenCounter = new LinkedList<Integer>();
-        List<List<String>> content = new LinkedList<List<String>>();
-        List<String> keys = new LinkedList<String>();
+        List<Integer> colMaxLenCounter = new LinkedList<>();
+        List<List<String>> content = new LinkedList<>();
+        List<String> keys = new LinkedList<>();
         int counter = 0;
         /* 读取制表数据 */
         for(JData data:dataSet){
@@ -55,7 +55,7 @@ public class OutputFormatter {
                 if(colMaxLenCounter.size() == colCounter){
                     String key = entry.getKey().toString();
                     String value = entry.getValue().toString();
-                    List<String> col = new LinkedList<String>();
+                    List<String> col = new LinkedList<>();
                     keys.add(key);
                     col.add(value);
                     content.add(col);
@@ -80,7 +80,7 @@ public class OutputFormatter {
 
         /* 制表 */
         /* 先额外加一行id信息 */
-        Table.Builder builder = null;
+        Table.Builder builder;
         int tableSize = keys.size();
         Integer[] id = new Integer[counter];
         for(int i=1; i<=counter; ++i){
@@ -90,7 +90,7 @@ public class OutputFormatter {
         int foo = 10;
         while(tableSize/foo != 0){
             nwidth++;
-            foo*=10;
+            foo *= 10;
         }
         ColumnFormatter<Number> nformatter
                 = ColumnFormatter.number(Alignment.CENTER, nwidth, Precision.ZERO);

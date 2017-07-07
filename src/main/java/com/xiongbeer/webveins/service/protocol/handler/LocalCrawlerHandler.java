@@ -70,6 +70,7 @@ public class LocalCrawlerHandler extends ChannelInboundHandlerAdapter {
          */
         String localSavePath = Configuration.TEMP_DIR + '/'
                 + data.getUrlFileName();
+        //FIXME
         int progress = Integer.parseInt(data.getAttachment().toString(Charset.defaultCharset()));
         boolean flag = action.run(localSavePath, progress);
         /* 任务结束后删除url文件 */

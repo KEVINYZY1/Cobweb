@@ -106,7 +106,6 @@ public class HDFSManager {
      */
     public void downLoad(String src, String dst) throws IOException {
         fs.copyToLocalFile(false, new Path(src), new Path(dst));
-
     }
 
     /**

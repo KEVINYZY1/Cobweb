@@ -47,9 +47,9 @@ public class UrlFilter {
         File dir = new File(cacheDir);
         File file = new File(getBloomFileName(dir));
         BloomFileInfo info = new BloomFileInfo(file.getName());
-        urlCounter = new AtomicLong(info.getUrlCounter().longValue());
-        expectedInsertions = info.getExpectedInsertions().longValue();
-        fpp = info.getFpp().doubleValue();
+        urlCounter = new AtomicLong(info.getUrlCounter());
+        expectedInsertions = info.getExpectedInsertions();
+        fpp = info.getFpp();
         load(file.getAbsolutePath());
     }
 
@@ -67,9 +67,9 @@ public class UrlFilter {
         String bloomFileName = getBloomFileName(dir, uniqueMarkupRegex);
         File file = new File(cacheDir + File.separator + bloomFileName);
         BloomFileInfo info = new BloomFileInfo(bloomFileName);
-        urlCounter = new AtomicLong(info.getUrlCounter().longValue());
-        expectedInsertions = info.getExpectedInsertions().longValue();
-        fpp = info.getFpp().doubleValue();
+        urlCounter = new AtomicLong(info.getUrlCounter());
+        expectedInsertions = info.getExpectedInsertions();
+        fpp = info.getFpp();
         load(file.getAbsolutePath());
     }
 
@@ -138,6 +138,16 @@ public class UrlFilter {
 
     /**
      * 持久化bloom过滤器在内存中的状态
+     * Guava中BloomFilter序列化格式：
+     * +-----------------------------------------------------------------------+
+     * | strategyOrdinal | numHashFunctions | dataLength |      BitArray       |
+     * |     1 byte      |      1 byte      |    1 int   |  8*dataLength bytes |
+     * +-----------------------------------------------------------------------+
+     * 采用的numHashFunctions个Hash函数实现：
+     * 首先使用murmurHash3对Object生成一个128位的值，取低64位值为combinedHash
+     * 1.mask combinedHash的符号位后对BitArray.Size进行取余后的值就是新的置true的位置
+     * 2.combinedHash更新为combinedHash += 高64位的值
+     * 按上2步骤循环numHashFunctions次
      *
      * @param targetDir 存储的文件夹
      * @throws IOException
@@ -176,7 +186,7 @@ public class UrlFilter {
      * @param url
      */
     public boolean put(String url){
-        boolean flag = false;
+        boolean flag;
         MD5Maker md5 = new MD5Maker(url);
         String md5Value = md5.toString();
         synchronized (this) {

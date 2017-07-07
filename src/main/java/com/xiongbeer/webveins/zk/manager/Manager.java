@@ -582,8 +582,7 @@ public class Manager {
      */
     private void deleteNormalFiles(File tempSaveDir){
         Optional.ofNullable(tempSaveDir.listFiles()).ifPresent(files ->
-            Arrays.asList(files)
-                .stream()
+            Arrays.stream(files)
                 .filter(File::isFile)
                 .filter(file -> !file.getAbsolutePath().endsWith(Configuration.TEMP_SUFFIX))
                 .forEach(File::delete)
@@ -597,8 +596,7 @@ public class Manager {
      */
     private void removeTempSuffix(File dir){
         Optional.ofNullable(dir.listFiles()).ifPresent(files ->
-            Arrays.asList(files)
-                    .stream()
+            Arrays.stream(files)
                     .filter(File::isFile)
                     .filter(file -> file.getAbsolutePath().endsWith(Configuration.TEMP_SUFFIX))
                     .forEach(file -> {
@@ -617,6 +615,9 @@ public class Manager {
      */
     private void submitNewTasks(File dir) throws IOException {
         File[] files = dir.listFiles();
+        if(files == null) {
+            return;
+        }
         for(File file:files){
             if(!file.isDirectory()) {
                 String filePath = file.getAbsolutePath();
@@ -671,12 +672,11 @@ public class Manager {
     public void backUpFilterCache() throws IOException {
         /* 备份之前删除原来的缓存文件 */
         File localSave = new File(Configuration.BLOOM_SAVE_PATH);
-        File[] localFiles = localSave.listFiles();
-        for(File file:localFiles){
-            if(file.isFile()){
-                file.delete();
-            }
-        }
+        Optional.ofNullable(localSave.listFiles()).ifPresent(files ->
+            Arrays.stream(files)
+                .filter(File::isFile)
+                .forEach(File::delete)
+        );
         /* 备份至本地 */
         String bloomFilePath = urlFilter.save(Configuration.BLOOM_SAVE_PATH);
         /* 上传至hdfs */
@@ -686,11 +686,11 @@ public class Manager {
         /* 删除hdfs上旧的缓存文件，去除新缓存文件的TEMP_SUFFIX后缀 */
         List<String> cacheFiles
                 = hdfsManager.listFiles(Configuration.BLOOM_BACKUP_PATH, false);
-        for(String cache:cacheFiles){
+        for(String cache:cacheFiles) {
             if(!cache.endsWith(Configuration.TEMP_SUFFIX)) {
                 hdfsManager.delete(cache, false);
             }
-            else{
+            else {
                 String newName = cache.substring(0,
                         cache.length() - Configuration.TEMP_SUFFIX.length());
                 hdfsManager.moveHDFSFile(cache, newName);
