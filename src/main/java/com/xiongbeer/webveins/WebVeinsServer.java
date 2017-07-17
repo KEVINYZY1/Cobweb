@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.xiongbeer.webveins.check.SelfTest;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import com.xiongbeer.webveins.service.protocol.Server;
 import com.xiongbeer.webveins.utils.IdProvider;
@@ -24,58 +25,46 @@ import sun.misc.SignalHandler;
 public class WebVeinsServer {
     private static final Logger logger = LoggerFactory.getLogger(WebVeinsServer.class);
     private static WebVeinsServer wvServer;
-	private Server server;
-	private Worker worker;
-	private String serverId;
-	private CuratorFramework client;
-	private HDFSManager hdfsManager;
+    private Server server;
+    private Worker worker;
+    private String serverId;
+    private CuratorFramework client;
+    private DFSManager dfsManager;
     private ExecutorService serviceThreadPool = Executors.newFixedThreadPool(1);
 
-	private WebVeinsServer() throws IOException {
-    	Configuration.getInstance();
+    private WebVeinsServer() throws IOException {
+        Configuration.getInstance();
         client = SelfTest.checkAndGetZK();
-        if(client == null){
-            logger.error("Connect to zookeeper server failed.");
-            System.exit(1);
-        }
-        hdfsManager = SelfTest.checkAndGetHDFS();
-        if(hdfsManager == null){
-            logger.error("Connect to hdfs failed.");
-            System.exit(1);
-        }
         serverId = new IdProvider().getIp();
+        dfsManager = SelfTest.checkAndGetDFS();
         /* 监听kill信号 */
         SignalHandler handler = new StopSignalHandler();
         Signal termSignal = new Signal("TERM");
         Signal.handle(termSignal, handler);
     }
-    
-    public static synchronized WebVeinsServer getInstance()
-            throws IOException {
-        if(wvServer == null){
-        	wvServer = new WebVeinsServer();
+
+    public static synchronized WebVeinsServer getInstance() throws IOException {
+        if (wvServer == null) {
+            wvServer = new WebVeinsServer();
         }
         return wvServer;
     }
 
     public void runServer() throws IOException {
         worker = new Worker(client, serverId);
-        server = new Server(Configuration.LOCAL_PORT, client, hdfsManager, worker);
+        server = new Server(Configuration.LOCAL_PORT, client, dfsManager, worker);
         server.bind();
     }
 
-    public void run(){
+    public void run() {
         /* 主服务 */
-        serviceThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    logger.info("run local server");
-                    runServer();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+        serviceThreadPool.execute(() -> {
+            try {
+                logger.info("run local server");
+                runServer();
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
             }
         });
     }
@@ -89,18 +78,17 @@ public class WebVeinsServer {
                 logger.info("stoping zk client...");
                 client.close();
                 logger.info("stoping other service...");
-                hdfsManager.close();
+                dfsManager.close();
                 serviceThreadPool.shutdown();
             } catch (Throwable e) {
-               logger.error("handle|Signal handler" + "failed, reason "
+                logger.error("handle|Signal handler" + "failed, reason "
                         + e.getMessage());
             }
         }
     }
 
-    public static void main(String[] args)
-            throws IOException, InterruptedException {
-        if(SelfTest.checkRunning(WebVeinsServer.class.getSimpleName())){
+    public static void main(String[] args) throws IOException, InterruptedException {
+        if (SelfTest.checkRunning(WebVeinsServer.class.getSimpleName())) {
             logger.error("Service has already running");
             System.exit(1);
         }

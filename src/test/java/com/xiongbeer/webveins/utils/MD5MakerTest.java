@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class MD5MakerTest {
     @Test
-    public void hashTest(){
+    public void hashTest() {
         String key = "webveins";
         String value = "82634ea5c6ddb13fc22e651e56165d2d";
         MD5Maker md5Maker = new MD5Maker();

@@ -1,6 +1,5 @@
 package com.xiongbeer.webveins.example.webmagic;
 
-import com.google.common.primitives.UnsignedInteger;
 import com.xiongbeer.webveins.service.local.Action;
 import com.xiongbeer.webveins.service.local.Bootstrap;
 import com.xiongbeer.webveins.service.local.CrawlerBootstrap;
@@ -24,28 +23,28 @@ import java.util.regex.Pattern;
  * 爬虫客户端
  * 在启动了worker服务的情况下运行此爬虫就会自动的开始任务了
  * 这里就简单的爬取wiki百科里的链接
- *
+ * <p>
  * Created by shaoxiong on 17-5-9.
  */
 public class Crawler implements PageProcessor, Action {
     private Site site = Site.me().setRetryTimes(3)
             .setSleepTime(1000).setUseGzip(true)
             .setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
-    private static Set<String> newUrls = new ConcurrentSet<String>();
+    private static Set<String> newUrls = new ConcurrentSet<>();
+    private static AtomicInteger counter;
     private static Spider spider = Spider.create(new Crawler()).thread(3).clearPipeline();
-    private static AtomicInteger counter = new AtomicInteger(0);
 
     /* 每当worker领取到任务以后就会自动的运行这个函数，可以视为一个异步的callback */
     @Override
     public boolean run(String urlFilePath, int progress) {
         try {
-    	    /* worker领取到的url存放在一个本地文件夹中，这里提供了一个UrlFileLoader来把其中的url读到内存中 */
+            /* worker领取到的url存放在一个本地文件夹中，这里提供了一个UrlFileLoader来把其中的url读到内存中 */
             List<String> urlsList = new UrlFileLoader().readFileByLine(urlFilePath);
-            int len = urlsList.size();
-    	    /* 读取的url存在list中，读取出来放入爬虫的爬取队列中 */
-    	    for(int i=progress; i<len; ++i){
-    	        spider.addUrl(urlsList.get(i));
-            }
+            counter = new AtomicInteger(progress);
+            /* 读取的url存在list中，读取出来放入爬虫的爬取队列中 */
+            urlsList.stream()
+                    .skip(progress)
+                    .forEach(url -> spider.addUrl(url));
             spider.run();
             /* 任务执行完毕，上传新的url，为了节省内存你可以选择清空newurls，但也可以选择不清空以此来减轻manager的去重负担，这里选择了保留 */
             CrawlerBootstrap.upLoadNewUrls(newUrls);

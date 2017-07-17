@@ -84,7 +84,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
                     builder.setType(MessageType.CRAWLER_RESP.getValue());
                     builder.setStatus(ProcessData.CrawlerStatus.RUNNING);
                     builder.setUrlFilePath(Configuration.WAITING_TASKS_URLS +
-                            "/" + currentTask);
+                            "/" + currentTask.getTaskName());
                     builder.setUrlFileName(currentTask.getTaskName());
                     ctx.writeAndFlush(builder.build());
                     break;
@@ -126,7 +126,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
         builder.setStatus(ProcessData.CrawlerStatus.RUNNING);
         builder.setUrlFilePath(Configuration.WAITING_TASKS_URLS + "/" + task.getTaskName());
         builder.setUrlFileName(task.getTaskName());
-        builder.setAttachment(ByteString.copyFrom(new Integer(task.getTaskData().getProgress()).toString().getBytes()));
+        builder.setAttachment(ByteString.copyFrom(Integer.toString(task.getTaskData().getProgress()).getBytes()));
         ctx.writeAndFlush(builder.build());
 
         /* 拿到任务后会定时改变任务的mtime，防止被manager错误的重置 */
@@ -162,7 +162,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
             ProcessData.Builder builder = ProcessData.newBuilder();
             builder.setType(MessageType.HEART_BEAT_RESP.getValue());
             builder.setStatus(ProcessData.CrawlerStatus.RUNNING);
-            builder.setAttachment(ByteString.copyFrom(new Integer(progress).toString().getBytes()));
+            builder.setAttachment(ByteString.copyFrom(Integer.toString(progress).getBytes()));
             channel.writeAndFlush(builder.build());
         }
     }

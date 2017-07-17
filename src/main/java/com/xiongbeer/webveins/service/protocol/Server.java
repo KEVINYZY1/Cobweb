@@ -1,5 +1,6 @@
 package com.xiongbeer.webveins.service.protocol;
 
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import com.xiongbeer.webveins.service.protocol.handler.HeartBeatRespHandler;
 import com.xiongbeer.webveins.service.protocol.handler.LoginAuthRespHandler;
@@ -35,16 +36,16 @@ public class Server {
     private final int port;
     private Worker worker;
     private CuratorFramework client;
-    private HDFSManager hdfsManager;
+    private DFSManager dfsManager;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
     public Server(int port, CuratorFramework client
-            , HDFSManager hdfsManager, Worker worker) {
+            , DFSManager dfsManager, Worker worker) {
         this.port = port;
         this.worker = worker;
         this.client = client;
-        this.hdfsManager = hdfsManager;
+        this.dfsManager = dfsManager;
     }
 
     public void bind() {
@@ -66,7 +67,7 @@ public class Server {
                             ch.pipeline().addLast(new ProtobufEncoder());
                             ch.pipeline().addLast(new ReadTimeoutHandler(60));
                             ch.pipeline().addLast(new LoginAuthRespHandler(channels));
-                            ch.pipeline().addLast(new ShellRespHandler(client, hdfsManager));
+                            ch.pipeline().addLast(new ShellRespHandler(client, dfsManager));
                             ch.pipeline().addLast(new WorkerProxyHandler(worker));
                             ch.pipeline().addLast(new HeartBeatRespHandler());
                         }

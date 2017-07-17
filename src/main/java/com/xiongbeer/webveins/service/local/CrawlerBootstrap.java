@@ -1,6 +1,7 @@
 package com.xiongbeer.webveins.service.local;
 
 import com.xiongbeer.webveins.Configuration;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import com.xiongbeer.webveins.service.protocol.Client;
 import com.xiongbeer.webveins.service.protocol.message.MessageType;
@@ -22,7 +23,7 @@ import java.util.UUID;
  */
 public class CrawlerBootstrap extends Bootstrap {
     private static int WIRTE_LENGTH = 1024;
-    private static HDFSManager hdfsManager;
+    private static DFSManager dfsManager;
     private static final String savePath;
 
 
@@ -30,7 +31,7 @@ public class CrawlerBootstrap extends Bootstrap {
     	Configuration.getInstance();
     	/* 暂存至本地的TEMP_DIR */
     	savePath = Configuration.TEMP_DIR;
-    	hdfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF, Configuration.HDFS_SYSTEM_PATH);
+    	dfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF, Configuration.HDFS_SYSTEM_PATH);
     }
     
     public CrawlerBootstrap(Action action){
@@ -82,7 +83,7 @@ public class CrawlerBootstrap extends Bootstrap {
         String newName = md5Maker.toString();
         file.renameTo(new File(path+newName));
         /* 上传至HDFS */
-        hdfsManager.upLoad(path+newName, Configuration.NEW_TASKS_URLS);
+        dfsManager.uploadFile(path+newName, Configuration.NEW_TASKS_URLS);
         /* 上传成功后删除临时文件 */
         file.delete();
         return path;

@@ -4,7 +4,7 @@ import com.xiongbeer.webveins.api.SimpleInfo;
 import com.xiongbeer.webveins.api.jsondata.FilterJson;
 import com.xiongbeer.webveins.api.jsondata.JData;
 import com.xiongbeer.webveins.filter.BloomFileInfo;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.DFSManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,29 +15,29 @@ import java.util.List;
  * Created by shaoxiong on 17-5-12.
  */
 public class FilterInfo implements SimpleInfo {
-    private HDFSManager hdfsManager;
+    private DFSManager dfsManager;
     private List<JData> info;
 
-    public FilterInfo(HDFSManager hdfsManager){
-        this.hdfsManager = hdfsManager;
-        info = new LinkedList<JData>();
+    public FilterInfo(DFSManager dfsManager) {
+        this.dfsManager = dfsManager;
+        info = new LinkedList<>();
     }
 
     public FilterInfo getBloomCacheInfo(String src) throws IOException {
-        List<String> filesPath = hdfsManager.listFiles(src, false);
-        for(String path:filesPath){
+        List<String> filesPath = dfsManager.listFiles(src, false);
+        for (String path : filesPath) {
             File file = new File(path);
             BloomFileInfo bloomFile = new BloomFileInfo(file.getName());
             FilterJson data = new FilterJson();
             try {
-                data.setSize(hdfsManager.getFileLen(path));
-                data.setMtime(hdfsManager.getFileModificationTime(path));
+                data.setSize(dfsManager.getFileLen(path));
+                data.setMtime(dfsManager.getFileModificationTime(path));
                 data.setUniqueID(bloomFile.getUniqueID());
                 data.setFpp(bloomFile.getFpp());
                 data.setMaxCapacity(bloomFile.getExpectedInsertions());
                 data.setUrlsNum(bloomFile.getUrlCounter());
                 info.add(data);
-            } catch (Exception e){
+            } catch (Exception e) {
                 //drop
             }
         }

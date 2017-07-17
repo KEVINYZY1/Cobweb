@@ -7,5 +7,6 @@
 *.log
 *.xml
 *.pyc
+Test.java
 /data/bloom
 /data/temp

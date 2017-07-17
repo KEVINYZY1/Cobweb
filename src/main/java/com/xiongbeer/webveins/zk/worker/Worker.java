@@ -24,37 +24,39 @@ public class Worker {
     private TaskWorker taskWorker;
     private TaskWatcher taskWatcher;
 
-    public Worker(CuratorFramework client, String serverId){
+    public Worker(CuratorFramework client, String serverId) {
         this.client = client;
+        this.serverId = serverId;
         taskWorker = new TaskWorker(client);
         taskWatcher = new TaskWatcher(client);
-        this.serverId = serverId;
         signUpWorker();
     }
 
-    public static void addToBlackList(String taskName){
+    public static void addToBlackList(String taskName) {
         TaskWorker.addToBlackList(taskName);
     }
 
-    public static void clearBlackList(){
+    public static void clearBlackList() {
         TaskWorker.clearTaskBlackList();
     }
 
-    public TaskWorker getTaskWorker(){
+    public TaskWorker getTaskWorker() {
         return taskWorker;
     }
 
-    public TaskWatcher getTaskWatcher(){return taskWatcher;}
+    public TaskWatcher getTaskWatcher() {
+        return taskWatcher;
+    }
 
-    public String getWorkerPath(){
+    public String getWorkerPath() {
         return workerPath;
     }
 
-    public void waitForTask(){
+    public void waitForTask() {
         taskWatcher.waitForTask();
     }
 
-    public void setStatus(String taskName){
+    public void setStatus(String taskName) {
         try {
             client.setData().forPath(workerPath, taskName.getBytes());
         } catch (Exception e) {
@@ -62,30 +64,30 @@ public class Worker {
         }
     }
 
-    public Epoch takeTask(){
+    public Epoch takeTask() {
         Epoch task;
         task = taskWorker.takeTask();
-        if(task != null){
+        if (task != null) {
             setStatus(task.getTaskName());
         }
         return task;
     }
 
-    public void beat(String taskName, TaskData taskData){
+    public void beat(String taskName, TaskData taskData) {
         taskWorker.setRunningTask(ZnodeInfo.TASKS_PATH + '/' + taskName, -1, taskData);
         setStatus(taskName);
     }
 
-    public void discardTask(String taskPath){
-        taskWorker.discardTask(taskPath);;
+    public void discardTask(String taskPath) {
+        taskWorker.discardTask(taskPath);
     }
 
-    public void finishTask(String taskPath){
+    public void finishTask(String taskPath) {
         taskWorker.finishTask(taskPath);
         setStatus("");
     }
 
-    private void signUpWorker(){
+    private void signUpWorker() {
         try {
             workerPath = client.create()
                     .creatingParentsIfNeeded()

@@ -68,19 +68,19 @@ public class TaskJson implements JData {
         this.status = status;
     }
 
-    public String getProgress(){
+    public String getProgress() {
         return new Integer(progress).toString();
     }
 
-    public void setProgress(int progress){
+    public void setProgress(int progress) {
         this.progress = progress;
     }
 
-    public String getMarkup(){
+    public String getMarkup() {
         return new Integer(markup).toString();
     }
 
-    public void setMarkup(int markup){
+    public void setMarkup(int markup) {
         this.markup = markup;
     }
 }

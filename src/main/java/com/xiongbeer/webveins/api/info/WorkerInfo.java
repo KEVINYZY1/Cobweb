@@ -19,16 +19,16 @@ public class WorkerInfo implements SimpleInfo {
     private List<JData> info;
     private CuratorFramework client;
 
-    public WorkerInfo(CuratorFramework client){
-        this.info = new LinkedList<JData>();
+    public WorkerInfo(CuratorFramework client) {
+        this.info = new LinkedList<>();
         this.client = client;
     }
 
-    public WorkerInfo getCurrentWoker(){
+    public WorkerInfo getCurrentWoker() {
         List<String> children;
         try {
             children = client.getChildren().forPath(ZnodeInfo.WORKERS_PATH);
-            for(String child:children){
+            for (String child : children) {
                 WorkerJson data = new WorkerJson();
                 Stat stat = new Stat();
                 byte[] content;
@@ -38,10 +38,9 @@ public class WorkerInfo implements SimpleInfo {
                                 .forPath(ZnodeInfo.WORKERS_PATH + '/' + child);
                 data.setName(child);
                 /* 32为md5码长度 */
-                if(content.length == 32){
+                if (content.length == 32) {
                     data.setCurrentTask(new String(content));
-                }
-                else{
+                } else {
                     data.setCurrentTask("Empty");
                 }
                 info.add(data);

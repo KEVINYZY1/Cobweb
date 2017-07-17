@@ -12,11 +12,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by shaoxiong on 17-5-6.
  */
-public class TaskWatcher{
+public class TaskWatcher {
     private CuratorFramework client;
     private Logger logger = LoggerFactory.getLogger(TaskWatcher.class);
     public static int WAITING_TIME = 2 * 1000;
-    public TaskWatcher(CuratorFramework client){
+
+    public TaskWatcher(CuratorFramework client) {
         this.client = client;
     }
 
@@ -24,9 +25,9 @@ public class TaskWatcher{
      * 在没有可领取任务时阻塞
      * 刷新频率为WAITING_TIME/次
      */
-    public void waitForTask(){
+    public void waitForTask() {
         try {
-            while(true) {
+            while (true) {
                 List<String> children = client.getChildren().forPath(ZnodeInfo.TASKS_PATH);
                 for (String child : children) {
                     byte[] data = client.getData()

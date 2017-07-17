@@ -13,11 +13,11 @@ public class Epoch {
     private final int dataVersion;
     private final TaskData taskData;
 
-    public long getDifference(){
-        return (checkTime.getTime() - previousChangeTime.getTime())/1000;
+    public long getDifference() {
+        return (checkTime.getTime() - previousChangeTime.getTime()) / 1000;
     }
 
-    public Epoch(String taskName, long previousChangeTime, int dataVersion, TaskData taskData){
+    public Epoch(String taskName, long previousChangeTime, int dataVersion, TaskData taskData) {
         checkTime = new Date();
         this.previousChangeTime = new Date(previousChangeTime);
         this.status = taskData.getStatus();
@@ -26,11 +26,11 @@ public class Epoch {
         this.taskName = taskName;
     }
 
-    public int getDataVersion(){
+    public int getDataVersion() {
         return dataVersion;
     }
 
-    public Task.Status getStatus(){
+    public Task.Status getStatus() {
         return status;
     }
 
@@ -42,17 +42,17 @@ public class Epoch {
         return checkTime;
     }
 
-    public TaskData getTaskData(){
+    public TaskData getTaskData() {
         return taskData;
     }
 
-    public String getTaskName(){
+    public String getTaskName() {
         return taskName;
     }
 
     @Override
-    public String toString(){
-        return  "[taskName: " + taskName +
+    public String toString() {
+        return "[taskName: " + taskName +
                 "previousChangeTime: " + previousChangeTime.toString()
                 + "," + "checkTime: " + checkTime.toString()
                 + "," + "timeDifference: " + getDifference() + "s" + "]";

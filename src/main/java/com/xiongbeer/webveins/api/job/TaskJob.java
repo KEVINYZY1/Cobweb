@@ -4,6 +4,7 @@ import com.xiongbeer.webveins.Configuration;
 import com.xiongbeer.webveins.ZnodeInfo;
 import com.xiongbeer.webveins.api.SimpleJob;
 import com.xiongbeer.webveins.exception.VeinsException;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
@@ -18,15 +19,15 @@ import java.util.regex.Pattern;
  */
 public class TaskJob implements SimpleJob {
     private CuratorFramework client;
-    private HDFSManager hdfsManager;
+    private DFSManager dfsManager;
     private static int MAX_OUTPUT_INFO = 10;
 
-    public TaskJob(CuratorFramework client, HDFSManager hdfsManager){
+    public TaskJob(CuratorFramework client, DFSManager dfsManager) {
         this.client = client;
-        this.hdfsManager = hdfsManager;
+        this.dfsManager = dfsManager;
     }
 
-    public String removeTasks(String regex){
+    public String removeTasks(String regex) {
         String separator = System.getProperty("line.separator");
         StringBuilder builder = new StringBuilder(separator);
         int counter = 0;
@@ -37,12 +38,11 @@ public class TaskJob implements SimpleJob {
                 while (matcher.find()) {
                     removeFromHDFS(task);
                     removeFromZnode(task);
-                    if(counter < MAX_OUTPUT_INFO) {
+                    if (counter < MAX_OUTPUT_INFO) {
                         builder.append("[info] delete " + task
                                 + separator);
-                    }
-                    else if(counter == MAX_OUTPUT_INFO){
-                        builder.append("      ....."+separator);
+                    } else if (counter == MAX_OUTPUT_INFO) {
+                        builder.append("      ....." + separator);
                     }
                     counter++;
                     break;
@@ -56,7 +56,7 @@ public class TaskJob implements SimpleJob {
             throw new VeinsException.OperationFailedException("[Error] Authentication failed.");
         } catch (KeeperException.NoAuthException e) {
             throw new VeinsException.OperationFailedException("[Error] Permission denied.");
-        }  catch (Exception e) {
+        } catch (Exception e) {
             throw new VeinsException.OperationFailedException("Unknow error. " + e.getMessage());
         }
         return builder.toString();
@@ -68,7 +68,7 @@ public class TaskJob implements SimpleJob {
 
     public void removeFromHDFS(String taskName)
             throws IOException {
-        hdfsManager.delete(Configuration.WAITING_TASKS_URLS + '/' + taskName, false);
+        dfsManager.delete(Configuration.WAITING_TASKS_URLS + '/' + taskName, false);
     }
 
     public List<String> getTasksName() throws Exception {

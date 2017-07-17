@@ -1,6 +1,7 @@
 package com.xiongbeer.webveins.service.protocol.handler;
 
 import com.xiongbeer.webveins.Configuration;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import com.xiongbeer.webveins.service.protocol.message.MessageType;
 import com.xiongbeer.webveins.service.protocol.message.ProcessDataProto.ProcessData;
@@ -22,7 +23,7 @@ import java.util.concurrent.Executors;
  */
 public class LocalCrawlerHandler extends ChannelInboundHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(LocalCrawlerHandler.class);
-    private static HDFSManager hdfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF
+    private static DFSManager hdfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF
             , Configuration.HDFS_SYSTEM_PATH);
     private static ExecutorService crawlerLoop = Executors.newFixedThreadPool(2);
     private Action action;
@@ -59,7 +60,7 @@ public class LocalCrawlerHandler extends ChannelInboundHandlerAdapter {
         logger.info("Crawler get the task:" + urlFilePath
                 + "success at {}", new Date().toString());
         try {
-            hdfsManager.downLoad(urlFilePath, Configuration.TEMP_DIR);
+            hdfsManager.downloadFile(urlFilePath, Configuration.TEMP_DIR);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,6 +71,7 @@ public class LocalCrawlerHandler extends ChannelInboundHandlerAdapter {
          */
         String localSavePath = Configuration.TEMP_DIR + '/'
                 + data.getUrlFileName();
+        //FIXME
         int progress = Integer.parseInt(data.getAttachment().toString(Charset.defaultCharset()));
         boolean flag = action.run(localSavePath, progress);
         /* 任务结束后删除url文件 */

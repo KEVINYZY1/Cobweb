@@ -6,10 +6,10 @@ import com.xiongbeer.webveins.api.OutputFormatter;
 import com.xiongbeer.webveins.api.info.FilterInfo;
 import com.xiongbeer.webveins.api.info.TaskInfo;
 import com.xiongbeer.webveins.api.info.WorkerInfo;
-import com.xiongbeer.webveins.api.job.HDFSJob;
+import com.xiongbeer.webveins.api.job.DFSJob;
 import com.xiongbeer.webveins.api.job.TaskJob;
 import com.xiongbeer.webveins.api.jsondata.JData;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.service.protocol.message.MessageType;
 import com.xiongbeer.webveins.service.protocol.message.ProcessDataProto.ProcessData;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,11 +27,11 @@ import java.util.regex.Pattern;
  */
 public class ShellRespHandler extends ChannelInboundHandlerAdapter {
     private CuratorFramework client;
-    private HDFSManager hdfsManager;
+    private DFSManager dfsManager;
 
-    public ShellRespHandler(CuratorFramework zk, HDFSManager hdfsManager){
+    public ShellRespHandler(CuratorFramework zk, DFSManager dfsManager){
         this.client = zk;
-        this.hdfsManager = hdfsManager;
+        this.dfsManager = dfsManager;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
                 result = JDecoder(dataSet);
                 break;
             case LISTFILTERS:
-                FilterInfo filterInfo = new FilterInfo(hdfsManager);
+                FilterInfo filterInfo = new FilterInfo(dfsManager);
                 try {
                     dataSet = filterInfo
                             .getBloomCacheInfo(Configuration.BLOOM_BACKUP_PATH)
@@ -100,7 +100,7 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
                 result = JDecoder(dataSet);
                 break;
             case REMOVETASKS:
-                TaskJob taskJob = new TaskJob(client, hdfsManager);
+                TaskJob taskJob = new TaskJob(client, dfsManager);
                 if(args.length >= 2) {
                     result += taskJob.removeTasks(args[1]);
                 } else {
@@ -109,7 +109,7 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
                 result += "Done.";
                 break;
             case EMPTYHDFSTRASH:
-                HDFSJob hdfsJob = new HDFSJob(hdfsManager);
+                DFSJob hdfsJob = new DFSJob(dfsManager);
                 hdfsJob.EmptyTrash();
                 result = "Done.";
                 break;

@@ -11,54 +11,54 @@ import java.util.Map.Entry;
 /**
  * Created by shaoxiong on 17-4-10.
  */
-public class TaskWorker extends Task{
+public class TaskWorker extends Task {
 
     /* 任务黑名单 */
     private static List<String> blackList = new LinkedList<String>();
+
     public TaskWorker(CuratorFramework client) {
         super(client);
     }
 
     /**
      * 接管任务
-     *
+     * <p>
      * 这里可能会有一个疑问，那就是为何不使用sync
      * 就目前而言，还找不到使用它的理由，因为强实时性的意义并不大，
      * 即使本地zookeeper的视图稍有落后，也并不会发生多个worker持有一个任务的情况发生（会验证Task的版本信息）
      * 只是会多一些抢夺次数，而频繁的sync可能会给服务器带来更大的负担
      */
-    public Epoch takeTask(){
+    public Epoch takeTask() {
         Epoch task = null;
         checkTasks();
         /* 抢夺未被领取的任务 */
         Iterator<Entry<String, Epoch>> iterator = super.tasksInfo.entrySet().iterator();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             @SuppressWarnings("rawtypes")
-			Map.Entry entry = (Map.Entry)iterator.next();
+            Map.Entry entry = iterator.next();
             String key = (String) entry.getKey();
             Epoch value = (Epoch) entry.getValue();
-            if(!blackList.contains(value) && value.getStatus() == Status.WAITING){
-                if(setRunningTask(ZnodeInfo.TASKS_PATH + "/" + key,
+            if (!blackList.contains(value) && value.getStatus() == Status.WAITING) {
+                if (setRunningTask(ZnodeInfo.TASKS_PATH + "/" + key,
                         value.getDataVersion(), value.getTaskData())) {
                     task = value;
                     break;
                 }
             }
         }
-
         /* 如果task不为null就说明拿到了任务 */
         return task;
     }
 
-    public static void clearTaskBlackList(){
+    public static void clearTaskBlackList() {
         blackList.clear();
     }
 
-    public static void removeTaskBlackListElement(String taskName){
+    public static void removeTaskBlackListElement(String taskName) {
         blackList.remove(taskName);
     }
 
-    public static void addToBlackList(String taskName){
+    public static void addToBlackList(String taskName) {
         blackList.add(taskName);
     }
 
@@ -66,14 +66,13 @@ public class TaskWorker extends Task{
      * 执行失败，放弃任务
      *
      * @param taskPath
-     *
      */
-    public void discardTask(String taskPath){
+    public void discardTask(String taskPath) {
         try {
             TaskData taskData = new TaskData();
             taskData.setStatus(Status.WAITING);
             client.setData().forPath(taskPath, taskData.getBytes());
-        } catch (KeeperException.ConnectionLossException e){
+        } catch (KeeperException.ConnectionLossException e) {
             discardTask(taskPath);
         } catch (Exception e) {
             logger.warn("discard task" + taskPath + " failed", e);
@@ -85,7 +84,7 @@ public class TaskWorker extends Task{
      *
      * @param taskPath
      */
-    public void finishTask(String taskPath){
+    public void finishTask(String taskPath) {
         try {
             byte[] data = client.getData().forPath(taskPath);
             TaskData taskData = new TaskData(data);
@@ -108,7 +107,7 @@ public class TaskWorker extends Task{
      * @param version
      * @return
      */
-    public boolean setRunningTask(String path, int version, TaskData data){
+    public boolean setRunningTask(String path, int version, TaskData data) {
         boolean result = false;
         TaskData taskData = new TaskData(data.getBytes());
         taskData.setStatus(Status.RUNNING);
