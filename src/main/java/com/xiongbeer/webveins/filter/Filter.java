@@ -9,7 +9,7 @@ public interface Filter {
      * @param str
      * @return
      */
-    boolean put(String str) throws IOException;
+    boolean put(String str);
 
     /**
      * 判断URI是否已存在于filter
@@ -17,7 +17,7 @@ public interface Filter {
      * @param str
      * @return
      */
-    boolean exist(String str) throws IOException;
+    boolean exist(String str);
 
     /**
      * 序列化filter并存储到本地磁盘

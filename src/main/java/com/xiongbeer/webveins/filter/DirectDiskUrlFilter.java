@@ -27,8 +27,6 @@ import java.io.RandomAccessFile;
  * 1.mask combinedHash的符号位后对BitArray.Size进行取余后的值就是新的置true的位置
  * 2.combinedHash更新为combinedHash += 高64位的值
  * 按上2步骤循环numHashFunctions次
- * <p>
- * Created by shaoxiong on 17-7-1.
  */
 public class DirectDiskUrlFilter implements Filter {
     /* 1 byte + 1 byte + 1 int */
@@ -58,25 +56,33 @@ public class DirectDiskUrlFilter implements Filter {
         this.funnel = funnel;
     }
 
-    public boolean put(String url) throws IOException {
+    public boolean put(String url) {
         byte[] bytes = Hashing.murmur3_128().hashObject(url, funnel).asBytes();
         long hash1 = this.lowerEight(bytes);
         long hash2 = this.upperEight(bytes);
         boolean bitsChanged = false;
         long combinedHash = hash1;
-
-        for (int i = 0; i < numHashFunctions; ++i) {
+        try {
+            for (int i = 0; i < numHashFunctions; ++i) {
             /* mask combinedHash with 0x7FFFFFFFFFFFFFFF */
-            bitsChanged |= bits.set((combinedHash & 9223372036854775807L) % bitsSize);
-            combinedHash += hash2;
+                bitsChanged |= bits.set((combinedHash & 9223372036854775807L) % bitsSize);
+                combinedHash += hash2;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
         return bitsChanged;
     }
 
     @Override
-    public boolean exist(String str) throws IOException {
-        return mightContain(str);
+    public boolean exist(String str) {
+        boolean res = false;
+        try {
+            res = mightContain(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return res;
     }
 
     @Override
@@ -86,6 +92,7 @@ public class DirectDiskUrlFilter implements Filter {
 
     @Override
     public void load(String src) throws IOException {
+        // jump
     }
 
     public boolean mightContain(String url) throws IOException {
