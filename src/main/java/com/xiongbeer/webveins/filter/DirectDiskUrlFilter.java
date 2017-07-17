@@ -11,12 +11,12 @@ import java.io.RandomAccessFile;
 
 /**
  * 牺牲吞吐效率（性能瓶颈在IO）来换取强一致性和无大小限制的BloomFilter，直接在硬盘上随机读写，不载入内存
- *
+ * <p>
  * Guava版本 21.0
- *
+ * <p>
  * Hash函数数量计算公式： Math.max(1, (int)Math.round((double)m / (double)n * Math.log(2.0D)))
  * BitArray计算公式： (long)((double)(-n) * Math.log(p) / (Math.log(2.0D) * Math.log(2.0D)))(p.s 若 p = 0.0D 则记 p = 4.9E-324D)
- *
+ * <p>
  * Guava中BloomFilter序列化格式：
  * +-----------------------------------------------------------------------+
  * | strategyOrdinal | numHashFunctions | dataLength |      BitArray       |
@@ -27,10 +27,12 @@ import java.io.RandomAccessFile;
  * 1.mask combinedHash的符号位后对BitArray.Size进行取余后的值就是新的置true的位置
  * 2.combinedHash更新为combinedHash += 高64位的值
  * 按上2步骤循环numHashFunctions次
- *
+ * <p>
  * Created by shaoxiong on 17-7-1.
  */
-public class DirectDiskUrlFilter {
+public class DirectDiskUrlFilter implements Filter {
+    /* 1 byte + 1 byte + 1 int */
+    static final int OPERATION_OFFSET = 6;
     private Funnel funnel;
     private File filterFile;
     private RandomAccessFile raf;
@@ -39,11 +41,7 @@ public class DirectDiskUrlFilter {
     private long bitsSize;
     private Bits bits;
 
-    /* 1 byte + 1 byte + 1 int */
-    static final int OPERATION_OFFSET = 6;
-
     /**
-     *
      * @param filterPath 原Guava序列化存储的文件路径
      * @param funnel     原Guava BloomFilter使用的Funnel
      * @throws IOException
@@ -55,7 +53,7 @@ public class DirectDiskUrlFilter {
         raf.readByte();
         numHashFunctions = UnsignedBytes.toInt(raf.readByte());
         dataLength = raf.readInt();
-        bitsSize = (long)dataLength * 64L;
+        bitsSize = (long) dataLength * 64L;
         bits = new Bits();
         this.funnel = funnel;
     }
@@ -67,7 +65,7 @@ public class DirectDiskUrlFilter {
         boolean bitsChanged = false;
         long combinedHash = hash1;
 
-        for(int i = 0; i < numHashFunctions; ++i) {
+        for (int i = 0; i < numHashFunctions; ++i) {
             /* mask combinedHash with 0x7FFFFFFFFFFFFFFF */
             bitsChanged |= bits.set((combinedHash & 9223372036854775807L) % bitsSize);
             combinedHash += hash2;
@@ -76,14 +74,28 @@ public class DirectDiskUrlFilter {
         return bitsChanged;
     }
 
+    @Override
+    public boolean exist(String str) throws IOException {
+        return mightContain(str);
+    }
+
+    @Override
+    public String save(String dst) throws IOException {
+        return filterFile.getAbsolutePath();
+    }
+
+    @Override
+    public void load(String src) throws IOException {
+    }
+
     public boolean mightContain(String url) throws IOException {
         byte[] bytes = Hashing.murmur3_128().hashObject(url, funnel).asBytes();
         long hash1 = this.lowerEight(bytes);
         long hash2 = this.upperEight(bytes);
         long combinedHash = hash1;
 
-        for(int i = 0; i < numHashFunctions; ++i) {
-            if(!bits.get((combinedHash & 9223372036854775807L) % bitsSize)) {
+        for (int i = 0; i < numHashFunctions; ++i) {
+            if (!bits.get((combinedHash & 9223372036854775807L) % bitsSize)) {
                 return false;
             }
 
@@ -118,9 +130,9 @@ public class DirectDiskUrlFilter {
 
         boolean set(long index) throws IOException {
             long blockValue = this.getBlockValue(index);
-            if(blockValue != -1) {
+            if (blockValue != -1) {
                 raf.seek(OPERATION_OFFSET + ((index >>> 6) << 3));
-                raf.writeLong(blockValue | (1L << (int)index));
+                raf.writeLong(blockValue | (1L << (int) index));
                 return true;
             } else {
                 return false;
@@ -129,13 +141,13 @@ public class DirectDiskUrlFilter {
 
         boolean get(long index) throws IOException {
             raf.seek(OPERATION_OFFSET + ((index >>> 6) << 3));
-            return (raf.readLong() & (1L << (int)index)) != 0L;
+            return (raf.readLong() & (1L << (int) index)) != 0L;
         }
 
         long getBlockValue(long index) throws IOException {
             raf.seek(OPERATION_OFFSET + ((index >>> 6) << 3));
             long blockValue = raf.readLong();
-            if((blockValue & (1L << (int)index)) == 0L){
+            if ((blockValue & (1L << (int) index)) == 0L) {
                 return blockValue;
             }
             return -1;

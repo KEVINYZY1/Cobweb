@@ -9,17 +9,19 @@ import java.util.regex.Pattern;
 
 /**
  * Bloom缓存文件的相关信息
- *
+ * <p>
  * Created by shaoxiong on 17-5-11.
  */
 public class BloomFileInfo {
-    private Long urlCounter;
-    private Long expectedInsertions;
-    private Double fpp;
     public static final String PREFIX = "#_";
     public static final String INFIX = "#";
     public static final String SUFFIX = "_#";
-    public BloomFileInfo(){}
+    private Long urlCounter;
+    private Long expectedInsertions;
+    private Double fpp;
+
+    public BloomFileInfo() {
+    }
 
     public BloomFileInfo(String bloomFileName) throws IOException {
         urlCounter = getUrlCounter(bloomFileName);
@@ -28,7 +30,7 @@ public class BloomFileInfo {
     }
 
     public BloomFileInfo(long urlCounter
-            , long expectedInsertions, double fpp){
+            , long expectedInsertions, double fpp) {
         this.urlCounter = urlCounter;
         this.expectedInsertions = expectedInsertions;
         this.fpp = fpp;
@@ -44,11 +46,11 @@ public class BloomFileInfo {
         Long value = null;
         Pattern pattern = Pattern.compile("(?<=\\#_)\\d*(?=\\#)");
         Matcher matcher = pattern.matcher(bloomFileName);
-        while(matcher.find()){
+        while (matcher.find()) {
             value = Long.parseLong(matcher.group());
             break;
         }
-        if(value == null){
+        if (value == null) {
             throw new IOException("Invaild bloom file name: "
                     + "get UrlCounter failed");
         }
@@ -65,11 +67,11 @@ public class BloomFileInfo {
         Long value = null;
         Pattern pattern = Pattern.compile("(?<=\\#)\\d*(?=\\#)");
         Matcher matcher = pattern.matcher(bloomFileName);
-        while(matcher.find()){
+        while (matcher.find()) {
             value = Long.parseLong(matcher.group());
             break;
         }
-        if(value == null){
+        if (value == null) {
             throw new IOException("Invaild bloom file name: "
                     + "get ExpectedInsertions failed");
         }
@@ -86,11 +88,11 @@ public class BloomFileInfo {
         Double value = null;
         Pattern pattern = Pattern.compile("(?<=\\#)0{1}\\.{1}\\d*(?=_\\#)");
         Matcher matcher = pattern.matcher(bloomFileName);
-        while(matcher.find()){
+        while (matcher.find()) {
             value = Double.parseDouble(matcher.group());
             break;
         }
-        if(value == null){
+        if (value == null) {
             throw new IOException("Invaild bloom file name: "
                     + "get Fpp failed");
         }
@@ -99,7 +101,7 @@ public class BloomFileInfo {
 
     /**
      * bloom缓存文件名中包含了必要信息
-     *
+     * <p>
      * urlCounter： 目前已经存入的URL的数量
      * expectedInsertions：最大容量
      * fpp： 误报概率
@@ -107,11 +109,11 @@ public class BloomFileInfo {
      * @return
      */
     @Override
-    public String toString(){
+    public String toString() {
         DecimalFormat df = new DecimalFormat("0.###############");
         return Configuration.BLOOM_CACHE_FILE_PREFIX
                 + PREFIX + urlCounter
-                + INFIX  + expectedInsertions
+                + INFIX + expectedInsertions
                 + INFIX + df.format(fpp.doubleValue()) + SUFFIX
                 + Configuration.BLOOM_CACHE_FILE_SUFFIX;
     }
@@ -145,7 +147,7 @@ public class BloomFileInfo {
      *
      * @return
      */
-    public String getUniqueID(){
+    public String getUniqueID() {
         return "NULL";
     }
 }

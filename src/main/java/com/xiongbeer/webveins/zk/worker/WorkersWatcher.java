@@ -15,19 +15,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * 监视workers下运行客户端的连接状态
  * Created by shaoxiong on 17-4-6.
  */
-public class WorkersWatcher implements Watcher{
+public class WorkersWatcher implements Watcher {
     private static final Logger logger = LoggerFactory.getLogger(WorkersWatcher.class);
     private Map<String, String> workersMap = new ConcurrentHashMap<>();
     private CuratorFramework client;
-    
-    public WorkersWatcher(CuratorFramework client){
+
+    public WorkersWatcher(CuratorFramework client) {
         this.client = client;
     }
 
     /**
      * 获得(刷新)worker列表
      */
-    public void refreshAliveWorkers(){
+    public void refreshAliveWorkers() {
         try {
             List<String> children =
                     client.getChildren()
@@ -36,7 +36,7 @@ public class WorkersWatcher implements Watcher{
             /* 首先检查上一次保存的worker中有没有消失的 */
             workersMap.entrySet().forEach(entry -> {
                 String workerName = entry.getKey();
-                if(!children.contains(workerName)){
+                if (!children.contains(workerName)) {
                     workersMap.remove(workerName);
                 }
             });
@@ -50,30 +50,30 @@ public class WorkersWatcher implements Watcher{
     /**
      * 刷新所有worker列表中worker的状态
      */
-    public void refreshAllWorkersStatus(){
+    public void refreshAllWorkersStatus() {
         workersMap.entrySet().forEach(entry -> refreshWorkerStatus(entry.getKey()));
     }
 
-    public Map<String, String> getWorkersMap(){
+    public Map<String, String> getWorkersMap() {
         return workersMap;
     }
 
     @Override
     public void process(WatchedEvent watchedEvent) {
-        if(watchedEvent.getType() == Event.EventType.NodeChildrenChanged){
-            assert ZnodeInfo.WORKERS_PATH.equals( watchedEvent.getPath() );
+        if (watchedEvent.getType() == Event.EventType.NodeChildrenChanged) {
+            assert ZnodeInfo.WORKERS_PATH.equals(watchedEvent.getPath());
             refreshAliveWorkers();
         }
     }
 
-    private void refreshWorkerStatus(String workerName){
+    private void refreshWorkerStatus(String workerName) {
         try {
             byte[] data = client.getData()
                     .forPath(ZnodeInfo.WORKERS_PATH + "/" + workerName);
             workersMap.put(workerName, new String(data));
         } catch (KeeperException.ConnectionLossException e) {
             refreshWorkerStatus(workerName);
-        } catch (KeeperException.NoNodeException e){
+        } catch (KeeperException.NoNodeException e) {
             workersMap.remove(workerName);
         } catch (Exception e) {
             e.printStackTrace();

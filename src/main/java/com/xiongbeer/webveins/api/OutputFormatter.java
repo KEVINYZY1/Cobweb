@@ -22,37 +22,37 @@ public class OutputFormatter {
     boolean fullPrint = false;
     final int LIMIT = 30;
 
-    public OutputFormatter(List<JData> dataSet){
+    public OutputFormatter(List<JData> dataSet) {
         this.dataSet = dataSet;
     }
 
-    public void setFullPrint(boolean flag){
+    public void setFullPrint(boolean flag) {
         fullPrint = flag;
     }
 
-    public String format(){
+    public String format() {
         return getFormatTable();
     }
 
     @SuppressWarnings("rawtypes")
-	private String getFormatTable(){
-        int limit = fullPrint?Integer.MAX_VALUE:LIMIT;
+    private String getFormatTable() {
+        int limit = fullPrint ? Integer.MAX_VALUE : LIMIT;
         int boundLen = 0;
         List<Integer> colMaxLenCounter = new LinkedList<>();
         List<List<String>> content = new LinkedList<>();
         List<String> keys = new LinkedList<>();
         int counter = 0;
         /* 读取制表数据 */
-        for(JData data:dataSet){
-            if(counter >= limit){
+        for (JData data : dataSet) {
+            if (counter >= limit) {
                 break;
             }
             int colCounter = 0;
             JSONObject object = (JSONObject) JSON.toJSON(data);
             Iterator iterator = object.entrySet().iterator();
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) iterator.next();
-                if(colMaxLenCounter.size() == colCounter){
+                if (colMaxLenCounter.size() == colCounter) {
                     String key = entry.getKey().toString();
                     String value = entry.getValue().toString();
                     List<String> col = new LinkedList<>();
@@ -62,14 +62,13 @@ public class OutputFormatter {
 
                     int keyLen = key.length();
                     int valueLen = value.length();
-                    colMaxLenCounter.add(keyLen>valueLen?keyLen:valueLen);
-                }
-                else{
+                    colMaxLenCounter.add(keyLen > valueLen ? keyLen : valueLen);
+                } else {
                     String value = entry.getValue().toString();
                     int preMaxLen = colMaxLenCounter.get(colCounter);
                     int curLen = value.length();
                     colMaxLenCounter.set(colCounter
-                            , curLen>preMaxLen?curLen:preMaxLen);
+                            , curLen > preMaxLen ? curLen : preMaxLen);
                     List<String> col = content.get(colCounter);
                     col.add(value);
                 }
@@ -83,12 +82,12 @@ public class OutputFormatter {
         Table.Builder builder;
         int tableSize = keys.size();
         Integer[] id = new Integer[counter];
-        for(int i=1; i<=counter; ++i){
-            id[i-1] = i;
+        for (int i = 1; i <= counter; ++i) {
+            id[i - 1] = i;
         }
         int nwidth = 4;
         int foo = 10;
-        while(tableSize/foo != 0){
+        while (tableSize / foo != 0) {
             nwidth++;
             foo *= 10;
         }
@@ -98,8 +97,8 @@ public class OutputFormatter {
                 , id, nformatter);
 
         /* 加入内容 */
-        boundLen += (nwidth + 1 +tableSize + 1);
-        for(int i=0; i<tableSize; ++i){
+        boundLen += (nwidth + 1 + tableSize + 1);
+        for (int i = 0; i < tableSize; ++i) {
             int width = colMaxLenCounter.get(i) + 2;
             boundLen += width;
             ColumnFormatter<String> sformatter
@@ -114,14 +113,12 @@ public class OutputFormatter {
                 + " results," + " show " + counter
                 + " of them on console." + separator;
         StringBuilder bound = new StringBuilder();
-        for(int i=0; i<boundLen; ++i){
-            if(i == 0){
+        for (int i = 0; i < boundLen; ++i) {
+            if (i == 0) {
                 bound.append(separator + "+");
-            }
-            else if(i == boundLen-1){
+            } else if (i == boundLen - 1) {
                 bound.append("+" + separator);
-            }
-            else{
+            } else {
                 bound.append('-');
             }
         }

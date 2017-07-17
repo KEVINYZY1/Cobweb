@@ -21,17 +21,17 @@ public class TaskInfo implements SimpleInfo {
     private List<JData> info;
     private CuratorFramework client;
 
-    public TaskInfo(CuratorFramework client){
+    public TaskInfo(CuratorFramework client) {
         this.client = client;
-        info = new LinkedList<JData>();
+        info = new LinkedList<>();
     }
 
-    public TaskInfo getCurrentTasks(){
+    public TaskInfo getCurrentTasks() {
         try {
             List<String> children =
                     client.getChildren().forPath(ZnodeInfo.TASKS_PATH);
             byte[] data;
-            for(String child:children){
+            for (String child : children) {
                 Stat stat = new Stat();
                 data = client.getData()
                         .storingStatIn(stat)
@@ -51,7 +51,7 @@ public class TaskInfo implements SimpleInfo {
         }
     }
 
-    private TaskJson taskInfo(Stat taskStat, String name, byte[] data){
+    private TaskJson taskInfo(Stat taskStat, String name, byte[] data) {
         TaskJson foo = new TaskJson();
         TaskData taskData = new TaskData(data);
         foo.setName(name);

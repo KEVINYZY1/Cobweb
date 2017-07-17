@@ -2,7 +2,8 @@ package com.xiongbeer.webveins;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
-import com.xiongbeer.webveins.filter.UrlFilter;
+import com.xiongbeer.webveins.filter.URIBloomFilter;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
@@ -68,24 +69,23 @@ public class Configuration {
     public static int WORKER_HEART_BEAT;
     public static int TOMCAT_HEART_BEAT;
     public static int LOCAL_ASYNC_THREAD_NUM;
-    private static UrlFilter URL_FILTER;
+    private static URIBloomFilter URL_FILTER;
 
-    private Configuration()
-            throws SAXException, IOException, ParserConfigurationException {
+    private Configuration() throws SAXException, IOException, ParserConfigurationException {
         /* 获取环境变量 */
         String HADOOP_HOME_PATH = System.getenv("HADOOP_HOME");
-    	HOME_PATH = System.getenv("WEBVEINS_HOME");
-    	if(!HADOOP_HOME_PATH.endsWith(File.separator)){
-    	    HADOOP_HOME_PATH += File.separator;
+        HOME_PATH = System.getenv("WEBVEINS_HOME");
+        if (!HADOOP_HOME_PATH.endsWith(File.separator)) {
+            HADOOP_HOME_PATH += File.separator;
         }
-        if(!HOME_PATH.endsWith(File.separator)){
-    	    HOME_PATH += File.separator;
+        if (!HOME_PATH.endsWith(File.separator)) {
+            HOME_PATH += File.separator;
         }
         confPath = HOME_PATH + "conf/";
 
         /* 读取配置信息失败，后续的任务肯定无法进行了 */
-    	logger.info("Checking...");
-        if(!check(confPath+"core.xml")){
+        logger.info("Checking...");
+        if (!check(confPath + "core.xml")) {
             System.exit(1);
         }
         logger.info("Loading default configuration...");
@@ -122,50 +122,45 @@ public class Configuration {
 
         /* 读取HDFS信息 */
         HDFS_SYSTEM_CONF = new org.apache.hadoop.conf.Configuration();
-        HDFS_SYSTEM_CONF.addResource(
-                new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "core-site.xml"));
-        HDFS_SYSTEM_CONF.addResource(
-                new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "hdfs-site.xml"));
-        HDFS_SYSTEM_CONF.addResource(
-                new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "mapred-site.xml"));
-        HDFS_SYSTEM_CONF.addResource(
-                new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "yarn-site.xml"));
+        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "core-site.xml"));
+        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "hdfs-site.xml"));
+        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "mapred-site.xml"));
+        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "yarn-site.xml"));
     }
 
     /**
      * 默认先到hdfs中查询是否已经存在缓存文件
      * 否则新建一个filter
-     *
+     * <p>
      * UrlFilter需要延迟初始化，因为
      * 只有manager需要持有它，而且它会
      * 占用大量硬盘或者内存空间
      *
      * @return
      */
-    public UrlFilter getUrlFilter(){
-        HDFSManager hdfsManager = new HDFSManager(HDFS_SYSTEM_CONF, HDFS_SYSTEM_PATH);
+    public URIBloomFilter getUrlFilter() {
+        DFSManager dfsManager = new HDFSManager(HDFS_SYSTEM_CONF, HDFS_SYSTEM_PATH);
         long elementNums = Long.parseLong(map.get("bloom_filter_enums"));
-        double falsePositiveRate = Double.parseDouble(
-                map.get("bloom_filter_fpr"));
+        double falsePositiveRate = Double.parseDouble(map.get("bloom_filter_fpr"));
         try {
-            if(URL_FILTER == null) {
+            if (URL_FILTER == null) {
                 List<String> bloomfiles
-                        = hdfsManager.listFiles(BLOOM_BACKUP_PATH, false);
-                for(String filePath:bloomfiles){
+                        = dfsManager.listFiles(BLOOM_BACKUP_PATH, false);
+                for (String filePath : bloomfiles) {
                     File file = new File(filePath);
                     String fileName = file.getName();
                     Pattern pattern = Pattern.compile(BLOOM_CACHE_FILE_PREFIX + ".*");
                     Matcher matcher = pattern.matcher(fileName);
-                    while(matcher.find()){
+                    while (matcher.find()) {
                         logger.info("find filter: " + fileName + " loading...");
-                        hdfsManager.downLoad(BLOOM_BACKUP_PATH + '/' + fileName
+                        dfsManager.downloadFile(BLOOM_BACKUP_PATH + '/' + fileName
                                 , BLOOM_SAVE_PATH);
-                        return new UrlFilter(BLOOM_SAVE_PATH);
+                        return new URIBloomFilter(BLOOM_SAVE_PATH);
                     }
                 }
                 /* hdfs中没有则新建一个 */
                 logger.info("no filter cache file, create a new filter...");
-                URL_FILTER = new UrlFilter(elementNums, falsePositiveRate);
+                URL_FILTER = new URIBloomFilter(elementNums, falsePositiveRate);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -176,21 +171,21 @@ public class Configuration {
 
     /**
      * 从某个文件夹中读取上次保存的缓存文件
-     *
+     * <p>
      * 注意：这种读取方式必须保证文件夹中缓存文件只有一个
      *
      * @param dir 缓存文件夹
      * @return
      */
-    public UrlFilter getUrlFilter(String dir) throws IOException {
-        if(URL_FILTER == null) {
-            URL_FILTER = new UrlFilter(dir);
+    public URIBloomFilter getUrlFilter(String dir) throws IOException {
+        if (URL_FILTER == null) {
+            URL_FILTER = new URIBloomFilter(dir);
         }
         return URL_FILTER;
     }
 
     public static synchronized Configuration getInstance() {
-        if(conf == null){
+        if (conf == null) {
             try {
                 conf = new Configuration();
             } catch (SAXException e) {
@@ -210,7 +205,7 @@ public class Configuration {
     /**
      * 设置默认值
      */
-    public void init(){
+    public void init() {
         map.put("bloom_save_path", HOME_PATH + "/data/bloom");
         map.put("hdfs_root", "/webveins");
         String root = map.get("hdfs_root");
@@ -222,11 +217,11 @@ public class Configuration {
         /* 临时文件（UrlFile）的存放的本地路径 */
         map.put("temp_dir", HOME_PATH + "/data/temp");
         /* Worker与ZooKeeper断开连接后，经过DEADTIME后认为Worker死亡 */
-        map.put("worker_dead_time" , "120");
+        map.put("worker_dead_time", "120");
         /* Manager进行检查的间隔 */
         map.put("check_time", "45");
         /* 本机ip Worker节点需要配置 */
-        map.put("local_host" , "127.0.0.1");
+        map.put("local_host", "127.0.0.1");
         /* Worker服务使用的端口 Worker节点需要配置 */
         map.put("local_port", "22000");
         /* 命令行API服务所使用的端口 */
@@ -273,24 +268,24 @@ public class Configuration {
     public void parse() throws IOException, SAXException, ParserConfigurationException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-        File file = new File(confPath+"core.xml");
+        File file = new File(confPath + "core.xml");
         Document doc = builder.parse(file);
         Element root = (Element) doc.getDocumentElement();
 
         NodeList children = root.getChildNodes();
-        for(int i=0; i<children.getLength(); ++i){
+        for (int i = 0; i < children.getLength(); ++i) {
             Node child = children.item(i);
-            if(child instanceof Element){
+            if (child instanceof Element) {
                 Element childElement = (Element) child;
-                if(childElement.getNodeName().equals("property")){
+                if (childElement.getNodeName().equals("property")) {
                     NodeList nodes = childElement.getChildNodes();
                     String name = null;
-                    for(int j=0; j<nodes.getLength(); ++j){
+                    for (int j = 0; j < nodes.getLength(); ++j) {
                         Node node = nodes.item(j);
-                        if(node instanceof  Element) {
+                        if (node instanceof Element) {
                             Text textNode = (Text) node.getFirstChild();
                             String text = textNode.getData().trim();
-                            if(node.getNodeName().equals("name")){
+                            if (node.getNodeName().equals("name")) {
                                 name = text;
                             } else {
                                 map.put(name, text);
@@ -302,9 +297,8 @@ public class Configuration {
         }
     }
 
-    public  String loadZKConnectString(String filePath) throws IOException {
-        List<String> content =
-                Files.readLines(new File(filePath), Charset.defaultCharset());
+    public String loadZKConnectString(String filePath) throws IOException {
+        List<String> content = Files.readLines(new File(filePath), Charset.defaultCharset());
         return Joiner.on(',').skipNulls().join(content) + ZnodeInfo.ROOT_PATH;
     }
 
@@ -314,7 +308,7 @@ public class Configuration {
         SchemaFactory factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
 
         /* 编译指定xsd文件的格式 */
-        File schemaLocation = new File(confPath+"config.xsd");
+        File schemaLocation = new File(confPath + "config.xsd");
         Schema schema = factory.newSchema(schemaLocation);
 
         /* 获取验证器 */
@@ -326,10 +320,9 @@ public class Configuration {
         /* 验证 */
         try {
             validator.validate(source);
-            logger.info(url+" is valid.");
+            logger.info(url + " is valid.");
             result = true;
-        }
-        catch (SAXException ex) {
+        } catch (SAXException ex) {
             logger.error(ex.getMessage());
             result = false;
         } catch (IOException e) {

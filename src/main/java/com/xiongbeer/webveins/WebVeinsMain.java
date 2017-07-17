@@ -1,7 +1,7 @@
 package com.xiongbeer.webveins;
 
 import com.xiongbeer.webveins.check.SelfTest;
-import com.xiongbeer.webveins.filter.UrlFilter;
+import com.xiongbeer.webveins.saver.DFSManager;
 import com.xiongbeer.webveins.saver.HDFSManager;
 import com.xiongbeer.webveins.utils.IdProvider;
 import com.xiongbeer.webveins.utils.InitLogger;
@@ -29,16 +29,16 @@ public class WebVeinsMain {
     private static WebVeinsMain wvMain;
     private String serverId;
     private Manager manager;
-    private HDFSManager hdfsManager;
+    private DFSManager dfsManager;
     private CuratorFramework client;
     private Configuration configuration;
     private ScheduledExecutorService manageExector = Executors.newScheduledThreadPool(1);
 
     private WebVeinsMain() throws IOException {
-    	configuration = Configuration.getInstance();
+        configuration = Configuration.getInstance();
         client = SelfTest.checkAndGetZK();
         serverId = new IdProvider().getIp();
-        hdfsManager = SelfTest.checkAndGetHDFS();
+        dfsManager = SelfTest.checkAndGetDFS();
         /* 监听kill信号 */
         SignalHandler handler = new StopSignalHandler();
         Signal termSignal = new Signal("TERM");
@@ -48,24 +48,21 @@ public class WebVeinsMain {
     /**
      * 定时执行manage
      */
-    private void run(){
-        manager = Manager.getInstance(client, serverId,
-                hdfsManager, configuration.getUrlFilter());
+    private void run() {
+        manager = Manager.getInstance(client, serverId, dfsManager, configuration.getUrlFilter());
         manageExector.scheduleAtFixedRate(() -> {
             try {
                 manager.manage();
             } catch (InterruptedException e) {
                 logger.info("shut down.");
-                return;
-            } catch (Throwable e){
+            } catch (Throwable e) {
                 logger.warn("something wrong when managing: ", e);
             }
         }, 0, Configuration.CHECK_TIME, TimeUnit.SECONDS);
     }
 
-    public static synchronized WebVeinsMain getInstance()
-            throws IOException {
-        if(wvMain == null){
+    public static synchronized WebVeinsMain getInstance() throws IOException {
+        if (wvMain == null) {
             wvMain = new WebVeinsMain();
         }
         return wvMain;
@@ -79,7 +76,7 @@ public class WebVeinsMain {
                 manager.stop();
                 manageExector.shutdownNow();
                 client.close();
-                hdfsManager.close();
+                dfsManager.close();
             } catch (Throwable e) {
                 logger.error("handle|Signal handler" + "failed, reason "
                         + e.getMessage());
@@ -88,7 +85,7 @@ public class WebVeinsMain {
     }
 
     public static void main(String[] args) throws IOException {
-        if(SelfTest.checkRunning(WebVeinsMain.class.getSimpleName())){
+        if (SelfTest.checkRunning(WebVeinsMain.class.getSimpleName())) {
             logger.error("Service has already running");
             System.exit(1);
         }

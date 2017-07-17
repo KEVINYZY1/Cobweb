@@ -15,17 +15,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by shaoxiong on 17-4-7.
  */
 public class Task {
-    public enum Status{
+    public enum Status {
         WAITING("0"), RUNNING("1"), FINISHED("2");
         private final String value;
-        Status(String value){
+
+        Status(String value) {
             this.value = value;
         }
-        public String getValue(){
+
+        public String getValue() {
             return value;
         }
-        public static Status get(String type){
-            switch (type){
+
+        public static Status get(String type) {
+            switch (type) {
                 case "0":
                     return WAITING;
                 case "1":
@@ -37,21 +40,21 @@ public class Task {
             }
         }
     }
+
     protected static final Logger logger = LoggerFactory.getLogger(Task.class);
     protected CuratorFramework client;
     protected Map<String, Epoch> tasksInfo = new ConcurrentHashMap<>();
 
-    public Task(CuratorFramework client){
+    public Task(CuratorFramework client) {
         this.client = client;
     }
 
     /**
      * 遍历目前所有任务
-     *
+     * <p>
      * 成功后对每个task进行checkTask
      */
-    public void checkTasks(){
-
+    public void checkTasks() {
         try {
             client.getChildren()
                     .forPath(ZnodeInfo.TASKS_PATH)
@@ -63,10 +66,11 @@ public class Task {
 
     /**
      * 检查任务
-     *
+     * <p>
      * 记录任务上一次修改的时间
      * 检查任务是否已经完成，若
      * 完成则release它
+     *
      * @param path
      */
     public void checkTask(String path) {
@@ -88,13 +92,14 @@ public class Task {
     /**
      * 获取所有未完成Task的信息
      * Epoch中包含
-     *   - 上一次修改的时间
-     *   - 最后检查的时间
-     *   - 状态
+     * - 上一次修改的时间
+     * - 最后检查的时间
+     * - 状态
      * 信息新鲜度取决于上一次checkTasks的时间
+     *
      * @return
      */
-    public Map<String, Epoch> getTasksInfo(){
+    public Map<String, Epoch> getTasksInfo() {
         return new HashMap<>(tasksInfo);
     }
 }
