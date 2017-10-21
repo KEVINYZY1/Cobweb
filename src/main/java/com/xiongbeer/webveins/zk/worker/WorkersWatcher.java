@@ -1,13 +1,15 @@
 package com.xiongbeer.webveins.zk.worker;
 
 import com.xiongbeer.webveins.ZnodeInfo;
-
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -17,7 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WorkersWatcher implements Watcher {
     private static final Logger logger = LoggerFactory.getLogger(WorkersWatcher.class);
+
     private Map<String, String> workersMap = new ConcurrentHashMap<>();
+
     private CuratorFramework client;
 
     public WorkersWatcher(CuratorFramework client) {

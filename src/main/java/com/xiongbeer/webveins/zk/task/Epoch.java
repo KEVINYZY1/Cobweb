@@ -7,10 +7,15 @@ import java.util.Date;
  */
 public class Epoch {
     private final String taskName;
+
     private final Date previousChangeTime;
+
     private final Date checkTime;
+
     private final Task.Status status;
+
     private final int dataVersion;
+
     private final TaskData taskData;
 
     public long getDifference() {

@@ -1,11 +1,13 @@
 package com.xiongbeer.webveins.zk.task;
 
 import com.xiongbeer.webveins.ZnodeInfo;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -67,16 +69,19 @@ public class TaskWorker extends Task {
      *
      * @param taskPath
      */
-    public void discardTask(String taskPath) {
+    public boolean discardTask(String taskPath) {
+        boolean res = false;
         try {
             TaskData taskData = new TaskData();
             taskData.setStatus(Status.WAITING);
             client.setData().forPath(taskPath, taskData.getBytes());
+            res = true;
         } catch (KeeperException.ConnectionLossException e) {
             discardTask(taskPath);
         } catch (Exception e) {
             logger.warn("discard task" + taskPath + " failed", e);
         }
+        return res;
     }
 
     /**
@@ -84,17 +89,20 @@ public class TaskWorker extends Task {
      *
      * @param taskPath
      */
-    public void finishTask(String taskPath) {
+    public boolean finishTask(String taskPath) {
+        boolean res = false;
         try {
             byte[] data = client.getData().forPath(taskPath);
             TaskData taskData = new TaskData(data);
             taskData.setStatus(Status.FINISHED);
             client.setData().forPath(taskPath, taskData.getBytes());
+            res = true;
         } catch (KeeperException.ConnectionLossException e) {
             finishTask(taskPath);
         } catch (Exception e) {
             logger.error("set task" + taskPath + " finished failed", e);
         }
+        return res;
     }
 
 
@@ -108,12 +116,12 @@ public class TaskWorker extends Task {
      * @return
      */
     public boolean setRunningTask(String path, int version, TaskData data) {
-        boolean result = false;
+        boolean res = false;
         TaskData taskData = new TaskData(data.getBytes());
         taskData.setStatus(Status.RUNNING);
         try {
             client.setData().withVersion(version).forPath(path, taskData.getBytes());
-            result = true;
+            res = true;
         } catch (KeeperException.NoNodeException e) {
             super.tasksInfo.remove(path);
         } catch (KeeperException.ConnectionLossException e) {
@@ -121,6 +129,6 @@ public class TaskWorker extends Task {
         } catch (Exception e) {
             logger.warn("set running task failed.", e);
         }
-        return result;
+        return res;
     }
 }

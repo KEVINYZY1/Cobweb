@@ -1,13 +1,13 @@
 package com.xiongbeer.webveins.zk.task;
 
-import com.xiongbeer.webveins.utils.Async;
 import com.xiongbeer.webveins.ZnodeInfo;
+import com.xiongbeer.webveins.utils.Async;
 import com.xiongbeer.webveins.zk.AsyncOpThreadPool;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundCallback;
 import org.apache.curator.framework.api.CuratorEvent;
-import org.apache.curator.framework.api.transaction.CuratorOp;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.data.Stat;
 
@@ -52,7 +52,6 @@ public class TaskManager extends Task {
                 }
             };
 
-
     private BackgroundCallback resetTaskCallback =
             (CuratorFramework curatorFramework, CuratorEvent curatorEvent) -> {
                 int rc = curatorEvent.getResultCode();
@@ -73,7 +72,6 @@ public class TaskManager extends Task {
                         break;
                 }
             };
-
 
     private BackgroundCallback releaseTaskCallback =
             (CuratorFramework curatorFramework, CuratorEvent curatorEvent) -> {

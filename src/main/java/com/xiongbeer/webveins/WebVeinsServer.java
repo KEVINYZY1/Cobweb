@@ -1,39 +1,42 @@
 package com.xiongbeer.webveins;
 
+import com.xiongbeer.webveins.check.SelfTest;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
+import com.xiongbeer.webveins.service.protocol.Server;
+import com.xiongbeer.webveins.utils.IdProvider;
+import com.xiongbeer.webveins.utils.InitLogger;
+import com.xiongbeer.webveins.zk.worker.Worker;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.xiongbeer.webveins.check.SelfTest;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
-import com.xiongbeer.webveins.service.protocol.Server;
-import com.xiongbeer.webveins.utils.IdProvider;
-import com.xiongbeer.webveins.utils.InitLogger;
-
-import org.apache.curator.framework.CuratorFramework;
-
-import com.xiongbeer.webveins.zk.worker.Worker;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-
 @SuppressWarnings("restriction")
-public class WebVeinsServer {
+public enum WebVeinsServer {
+    INSTANCE;
+
     private static final Logger logger = LoggerFactory.getLogger(WebVeinsServer.class);
-    private static WebVeinsServer wvServer;
+
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private Server server;
+
     private Worker worker;
+
     private String serverId;
+
     private CuratorFramework client;
+
     private DFSManager dfsManager;
+
     private ExecutorService serviceThreadPool = Executors.newFixedThreadPool(1);
 
-    private WebVeinsServer() throws IOException {
-        Configuration.getInstance();
+    WebVeinsServer() {
         client = SelfTest.checkAndGetZK();
         serverId = new IdProvider().getIp();
         dfsManager = SelfTest.checkAndGetDFS();
@@ -43,16 +46,9 @@ public class WebVeinsServer {
         Signal.handle(termSignal, handler);
     }
 
-    public static synchronized WebVeinsServer getInstance() throws IOException {
-        if (wvServer == null) {
-            wvServer = new WebVeinsServer();
-        }
-        return wvServer;
-    }
-
     public void runServer() throws IOException {
         worker = new Worker(client, serverId);
-        server = new Server(Configuration.LOCAL_PORT, client, dfsManager, worker);
+        server = new Server(configuration.LOCAL_PORT, client, dfsManager, worker);
         server.bind();
     }
 
@@ -93,7 +89,7 @@ public class WebVeinsServer {
             System.exit(1);
         }
         InitLogger.init();
-        WebVeinsServer server = WebVeinsServer.getInstance();
+        WebVeinsServer server = WebVeinsServer.INSTANCE;
         server.run();
     }
 }

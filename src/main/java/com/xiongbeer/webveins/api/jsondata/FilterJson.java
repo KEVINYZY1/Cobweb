@@ -9,14 +9,19 @@ import java.util.Date;
 public class FilterJson implements JData {
     /* 唯一标识符 */
     private String uniqueID;
+
     /* 已经存入的url的数量 */
     private long urlsNum;
+
     /* 文件大小 */
     private long size;
+
     /* 最后一次修改的时间 */
     private long mtime;
+
     /* 最大容量 */
     private long maxCapacity;
+
     /* 误差率 */
     private double fpp;
 

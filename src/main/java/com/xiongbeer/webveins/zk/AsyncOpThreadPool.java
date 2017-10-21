@@ -12,10 +12,11 @@ import java.util.concurrent.Executors;
  */
 public class AsyncOpThreadPool {
     private final ExecutorService threadPool;
+
     private static AsyncOpThreadPool asyncOpThreadPool;
 
     private AsyncOpThreadPool() {
-        threadPool = Executors.newFixedThreadPool(Configuration.LOCAL_ASYNC_THREAD_NUM);
+        threadPool = Executors.newFixedThreadPool(Configuration.INSTANCE.LOCAL_ASYNC_THREAD_NUM);
     }
 
     public static synchronized AsyncOpThreadPool getInstance() {

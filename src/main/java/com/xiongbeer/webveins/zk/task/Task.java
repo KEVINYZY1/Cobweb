@@ -42,7 +42,9 @@ public class Task {
     }
 
     protected static final Logger logger = LoggerFactory.getLogger(Task.class);
+
     protected CuratorFramework client;
+
     protected Map<String, Epoch> tasksInfo = new ConcurrentHashMap<>();
 
     public Task(CuratorFramework client) {

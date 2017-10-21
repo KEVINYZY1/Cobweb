@@ -10,13 +10,14 @@ import java.util.Enumeration;
 
 /**
  * 根据本机的IPv4地址来提供命名服务
- *
+ * <p>
  * Created by shaoxiong on 17-4-30.
  */
 public class IdProvider {
     private Logger logger = LoggerFactory.getLogger(IdProvider.class);
-    public String getIp(){
-        String id="-1";
+
+    public String getIp() {
+        String id = "-1";
         try {
             Enumeration<NetworkInterface> allNetInterfaces = NetworkInterface.getNetworkInterfaces();
             InetAddress ip = null;
@@ -29,7 +30,7 @@ public class IdProvider {
                     while (addresses.hasMoreElements()) {
                         ip = addresses.nextElement();
                         if (ip != null && ip instanceof Inet4Address) {
-                            id=ip.getHostAddress();
+                            id = ip.getHostAddress();
                         }
                     }
                 }

@@ -5,7 +5,6 @@ import com.xiongbeer.webveins.service.local.Bootstrap;
 import com.xiongbeer.webveins.service.local.CrawlerBootstrap;
 import com.xiongbeer.webveins.utils.InitLogger;
 import com.xiongbeer.webveins.utils.UrlFileLoader;
-
 import io.netty.util.internal.ConcurrentSet;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
@@ -30,8 +29,11 @@ public class Crawler implements PageProcessor, Action {
     private Site site = Site.me().setRetryTimes(3)
             .setSleepTime(1000).setUseGzip(true)
             .setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
+
     private static Set<String> newUrls = new ConcurrentSet<>();
+
     private static AtomicInteger counter;
+
     private static Spider spider = Spider.create(new Crawler()).thread(3).clearPipeline();
 
     /* 每当worker领取到任务以后就会自动的运行这个函数，可以视为一个异步的callback */
@@ -53,7 +55,7 @@ public class Crawler implements PageProcessor, Action {
             e.printStackTrace();
             System.exit(1);
         }
-		/* 如果返回false就会被视为放弃了任务，该任务就会被manager重置，然后等待被重新领取 */
+        /* 如果返回false就会被视为放弃了任务，该任务就会被manager重置，然后等待被重新领取 */
         return false;
     }
 

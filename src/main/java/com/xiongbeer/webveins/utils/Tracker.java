@@ -5,35 +5,40 @@ package com.xiongbeer.webveins.utils;
  * TODO:改为位运算
  */
 public class Tracker {
-    public static final int WAITING    = 3;
-    public static final int FINNISHED  = 1;
-    public static final int SUCCESS    = 0;
-    public static final int FAILED     = 2;
+    public static final int WAITING = 3;
+
+    public static final int FINNISHED = 1;
+
+    public static final int SUCCESS = 0;
+
+    public static final int FAILED = 2;
+
     private int status;
-    public Tracker(){
+
+    public Tracker() {
         status = WAITING;
     }
 
-    public void setStatus(int status){
+    public void setStatus(int status) {
         this.status = status;
     }
 
-    public void andStatus(int status){
+    public void andStatus(int status) {
 
     }
 
-    public int getStatus(){
+    public int getStatus() {
         return status;
     }
 
-    public String toString(){
+    public String toString() {
         String result = "";
-        switch (status){
+        switch (status) {
             case WAITING:
                 result = "WAITING";
                 break;
             case FAILED:
-                result =  "FAILED";
+                result = "FAILED";
                 break;
             case FINNISHED:
                 result = "FINNISHED";

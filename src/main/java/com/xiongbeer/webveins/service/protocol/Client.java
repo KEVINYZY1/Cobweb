@@ -7,9 +7,12 @@ import com.xiongbeer.webveins.service.protocol.handler.LocalCrawlerHandler;
 import com.xiongbeer.webveins.service.protocol.handler.LoginAuthReqHandler;
 import com.xiongbeer.webveins.service.protocol.handler.ShellReqHandler;
 import com.xiongbeer.webveins.service.protocol.message.ProcessDataProto.ProcessData;
-
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -30,8 +33,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Client {
     private final static Logger logger = LoggerFactory.getLogger(Client.class);
-    private final String host = Configuration.LOCAL_HOST;
-    private final int port = Configuration.LOCAL_PORT;
+    private static Configuration configuration = Configuration.INSTANCE;
+    private final String host = configuration.LOCAL_HOST;
+    private final int port = configuration.LOCAL_PORT;
     private final Action action;
     private AtomicBoolean closeLongConnection = new AtomicBoolean(false);
     private volatile boolean isLongConnection = false;

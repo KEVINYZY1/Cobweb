@@ -4,8 +4,7 @@ import com.xiongbeer.webveins.Configuration;
 import com.xiongbeer.webveins.ZnodeInfo;
 import com.xiongbeer.webveins.api.SimpleJob;
 import com.xiongbeer.webveins.exception.VeinsException;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 
@@ -18,9 +17,13 @@ import java.util.regex.Pattern;
  * Created by shaoxiong on 17-5-12.
  */
 public class TaskJob implements SimpleJob {
-    private CuratorFramework client;
-    private DFSManager dfsManager;
     private static int MAX_OUTPUT_INFO = 10;
+
+    private static Configuration configuration = Configuration.INSTANCE;
+
+    private CuratorFramework client;
+
+    private DFSManager dfsManager;
 
     public TaskJob(CuratorFramework client, DFSManager dfsManager) {
         this.client = client;
@@ -68,7 +71,7 @@ public class TaskJob implements SimpleJob {
 
     public void removeFromHDFS(String taskName)
             throws IOException {
-        dfsManager.delete(Configuration.WAITING_TASKS_URLS + '/' + taskName, false);
+        dfsManager.delete(configuration.WAITING_TASKS_URLS + '/' + taskName, false);
     }
 
     public List<String> getTasksName() throws Exception {

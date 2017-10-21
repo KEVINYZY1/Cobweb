@@ -18,10 +18,15 @@ import org.slf4j.LoggerFactory;
  */
 public class Worker {
     private static final Logger logger = LoggerFactory.getLogger(Worker.class);
+
     private CuratorFramework client;
+
     private String serverId;
+
     private String workerPath;
+
     private TaskWorker taskWorker;
+
     private TaskWatcher taskWatcher;
 
     public Worker(CuratorFramework client, String serverId) {
@@ -78,13 +83,14 @@ public class Worker {
         setStatus(taskName);
     }
 
-    public void discardTask(String taskPath) {
-        taskWorker.discardTask(taskPath);
+    public boolean discardTask(String taskPath) {
+        return taskWorker.discardTask(taskPath);
     }
 
-    public void finishTask(String taskPath) {
-        taskWorker.finishTask(taskPath);
+    public boolean finishTask(String taskPath) {
+        boolean res = taskWorker.finishTask(taskPath);
         setStatus("");
+        return res;
     }
 
     private void signUpWorker() {

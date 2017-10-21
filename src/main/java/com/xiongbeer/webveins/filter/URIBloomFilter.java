@@ -5,7 +5,11 @@ import com.google.common.hash.Funnels;
 import com.xiongbeer.webveins.Configuration;
 import com.xiongbeer.webveins.utils.MD5Maker;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
@@ -15,9 +19,14 @@ import java.util.regex.Pattern;
  * Created by shaoxiong on 17-5-10.
  */
 public class URIBloomFilter implements Filter {
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private BloomFilter<CharSequence> bloomFilter;
+
     private AtomicLong urlCounter;
+
     private double fpp;
+
     private long expectedInsertions;
 
     /**
@@ -88,7 +97,7 @@ public class URIBloomFilter implements Filter {
             @Override
             public boolean accept(File pathname) {
                 if (pathname.toString().endsWith(
-                        Configuration.BLOOM_CACHE_FILE_SUFFIX)) {
+                        configuration.BLOOM_CACHE_FILE_SUFFIX)) {
                     return true;
                 }
                 return false;
@@ -157,7 +166,7 @@ public class URIBloomFilter implements Filter {
                 urlCounter.longValue(),
                 expectedInsertions, fpp);
         String newName = targetDir + File.separator + info.toString()
-                + Configuration.TEMP_SUFFIX;
+                + configuration.TEMP_SUFFIX;
         File file = new File(newName);
         FileOutputStream fos = new FileOutputStream(file);
         bloomFilter.writeTo(fos);

@@ -10,6 +10,7 @@ import com.xiongbeer.webveins.utils.InitLogger;
  * Created by shaoxiong on 17-6-2.
  */
 public class ShellBootstrap extends Bootstrap {
+    private static Configuration configuration = Configuration.INSTANCE;
 
     public ShellBootstrap(String command){
         ProcessData.Builder builder = ProcessData.newBuilder();
@@ -25,7 +26,6 @@ public class ShellBootstrap extends Bootstrap {
 
     public static void main(String[] args){
         InitLogger.initEmpty();
-        Configuration.getInstance();
         StringBuilder command = new StringBuilder();
         for(String arg:args){
             command.append(arg);

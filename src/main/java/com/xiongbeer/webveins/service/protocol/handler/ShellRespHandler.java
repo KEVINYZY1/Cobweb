@@ -9,7 +9,7 @@ import com.xiongbeer.webveins.api.info.WorkerInfo;
 import com.xiongbeer.webveins.api.job.DFSJob;
 import com.xiongbeer.webveins.api.job.TaskJob;
 import com.xiongbeer.webveins.api.jsondata.JData;
-import com.xiongbeer.webveins.saver.DFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
 import com.xiongbeer.webveins.service.protocol.message.MessageType;
 import com.xiongbeer.webveins.service.protocol.message.ProcessDataProto.ProcessData;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,10 +26,13 @@ import java.util.regex.Pattern;
  * Created by shaoxiong on 17-5-30.
  */
 public class ShellRespHandler extends ChannelInboundHandlerAdapter {
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private CuratorFramework client;
+
     private DFSManager dfsManager;
 
-    public ShellRespHandler(CuratorFramework zk, DFSManager dfsManager){
+    public ShellRespHandler(CuratorFramework zk, DFSManager dfsManager) {
         this.client = zk;
         this.dfsManager = dfsManager;
     }
@@ -37,7 +40,7 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         ProcessData req = (ProcessData) msg;
-        if(req.getType() == MessageType.SHELL_REQ.getValue()) {
+        if (req.getType() == MessageType.SHELL_REQ.getValue()) {
             Command result = analysis(req.getCommand());
             //TODO add args
             ProcessData resp = buildShellResp(operation(result));
@@ -52,34 +55,34 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
     }
 
-    private ProcessData buildShellResp(String content){
+    private ProcessData buildShellResp(String content) {
         ProcessData.Builder builder = ProcessData.newBuilder();
         builder.setType(MessageType.SHELL_RESP.getValue());
         builder.setCommandReasult(content);
         return builder.build();
     }
 
-    private Command analysis(String req){
+    private Command analysis(String req) {
         EnumSet<Command> commands = EnumSet.allOf(Command.class);
-        for(Command command:commands){
+        for (Command command : commands) {
             Pattern pattern = Pattern.compile(command.toString());
             Matcher matcher = pattern.matcher(req.toUpperCase());
-            while(matcher.find()){
+            while (matcher.find()) {
                 return command;
             }
         }
         return null;
     }
 
-    private String operation(Command command, String... args){
+    private String operation(Command command, String... args) {
         List<JData> dataSet = null;
         String result = null;
-        if(command == null){
+        if (command == null) {
             return "[Error] Empty input";
         }
-        switch (command){
+        switch (command) {
             case LISTTASKS:
-                TaskInfo taskInfo  = new TaskInfo(client);
+                TaskInfo taskInfo = new TaskInfo(client);
                 dataSet = taskInfo.getCurrentTasks().getInfo();
                 result = JDecoder(dataSet);
                 break;
@@ -87,7 +90,7 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
                 FilterInfo filterInfo = new FilterInfo(dfsManager);
                 try {
                     dataSet = filterInfo
-                            .getBloomCacheInfo(Configuration.BLOOM_BACKUP_PATH)
+                            .getBloomCacheInfo(configuration.BLOOM_BACKUP_PATH)
                             .getInfo();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -101,7 +104,7 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
                 break;
             case REMOVETASKS:
                 TaskJob taskJob = new TaskJob(client, dfsManager);
-                if(args.length >= 2) {
+                if (args.length >= 2) {
                     result += taskJob.removeTasks(args[1]);
                 } else {
                     return "[Error] lack of args";
@@ -119,8 +122,8 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
         return result;
     }
 
-    private String JDecoder(List<JData> dataSet){
-        if(dataSet == null|| dataSet.size() == 0){
+    private String JDecoder(List<JData> dataSet) {
+        if (dataSet == null || dataSet.size() == 0) {
             return "Null dataSet";
         }
         return new OutputFormatter(dataSet).format();

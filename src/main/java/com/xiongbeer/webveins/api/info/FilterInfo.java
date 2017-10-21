@@ -4,7 +4,7 @@ import com.xiongbeer.webveins.api.SimpleInfo;
 import com.xiongbeer.webveins.api.jsondata.FilterJson;
 import com.xiongbeer.webveins.api.jsondata.JData;
 import com.xiongbeer.webveins.filter.BloomFileInfo;
-import com.xiongbeer.webveins.saver.DFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
 
 import java.io.File;
 import java.io.IOException;

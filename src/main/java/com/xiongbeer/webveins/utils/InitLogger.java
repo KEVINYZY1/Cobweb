@@ -3,12 +3,13 @@ package com.xiongbeer.webveins.utils;
 /**
  * Created by shaoxiong on 17-4-9.
  */
-import java.util.Properties;
 
 import org.apache.log4j.PropertyConfigurator;
 
+import java.util.Properties;
+
 public class InitLogger {
-    public static void init(){
+    public static void init() {
         Properties prop = new Properties();
 
         prop.setProperty("log4j.rootLogger", "Info,CONSOLE");
@@ -18,9 +19,9 @@ public class InitLogger {
 
         PropertyConfigurator.configure(prop);
     }
-    
-    public static void initEmpty(){
-        Properties prop = new Properties();    
+
+    public static void initEmpty() {
+        Properties prop = new Properties();
         prop.setProperty("log4j.rootLogger", "Error,CONSOLE");
         prop.setProperty("log4j.appender.CONSOLE", "org.apache.log4j.ConsoleAppender");
         prop.setProperty("log4j.appender.CONSOLE.layout", "org.apache.log4j.PatternLayout");

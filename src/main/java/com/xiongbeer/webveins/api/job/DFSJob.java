@@ -3,8 +3,7 @@ package com.xiongbeer.webveins.api.job;
 import com.xiongbeer.webveins.Configuration;
 import com.xiongbeer.webveins.api.SimpleJob;
 import com.xiongbeer.webveins.exception.VeinsException;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,7 +21,7 @@ public class DFSJob implements SimpleJob {
     public void EmptyTrash() {
         try {
             List<String> files
-                    = dfsManager.listFiles(Configuration.FINISHED_TASKS_URLS, false);
+                    = dfsManager.listFiles(Configuration.INSTANCE.FINISHED_TASKS_URLS, false);
             for (String file : files) {
                 dfsManager.delete(file, false);
             }

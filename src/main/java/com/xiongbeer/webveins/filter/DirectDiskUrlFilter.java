@@ -31,12 +31,19 @@ import java.io.RandomAccessFile;
 public class DirectDiskUrlFilter implements Filter {
     /* 1 byte + 1 byte + 1 int */
     static final int OPERATION_OFFSET = 6;
+
     private Funnel funnel;
+
     private File filterFile;
+
     private RandomAccessFile raf;
+
     private int numHashFunctions;
+
     private int dataLength;
+
     private long bitsSize;
+
     private Bits bits;
 
     /**

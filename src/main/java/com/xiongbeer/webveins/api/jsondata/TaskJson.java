@@ -11,14 +11,19 @@ import java.util.Date;
 public class TaskJson implements JData {
     /* 创建时间 */
     private long cTime;
+
     /* 最后一次修改时间 */
     private long mTime;
+
     /* 路径 */
     private String name;
+
     /* 状态 */
     private Task.Status status;
+
     /* 任务进度 */
     private int progress;
+
     /* 所属filter标识 */
     private int markup;
 

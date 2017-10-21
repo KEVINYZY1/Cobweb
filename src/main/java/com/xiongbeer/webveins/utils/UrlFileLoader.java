@@ -9,8 +9,8 @@ import java.util.List;
 
 
 public class UrlFileLoader {
-	public List<String> readFileByLine(String filePath) throws IOException{
-		File file = new File(filePath);
-		return Files.readLines(file, Charset.defaultCharset());
-	}
+    public List<String> readFileByLine(String filePath) throws IOException {
+        File file = new File(filePath);
+        return Files.readLines(file, Charset.defaultCharset());
+    }
 }

@@ -6,6 +6,7 @@ package com.xiongbeer.webveins.api.jsondata;
 public class WorkerJson implements JData {
     /* 名称 */
     private String name;
+
     /* 当前执行的任务 */
     private String currentTask;
 

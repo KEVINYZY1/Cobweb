@@ -3,12 +3,16 @@ package com.xiongbeer.webveins;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.xiongbeer.webveins.filter.URIBloomFilter;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
+import com.xiongbeer.webveins.saver.dfs.HDFSManager;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -31,47 +35,79 @@ import java.util.regex.Pattern;
 /**
  * Created by shaoxiong on 17-4-11.
  */
-public class Configuration {
-    private static Configuration conf;
-    private Logger logger = LoggerFactory.getLogger(Configuration.class);
-    private Map<String, String> map = new HashMap<String, String>();
+public enum Configuration {
+    INSTANCE;
 
-    private static String confPath;
+    private Logger logger = LoggerFactory.getLogger(Configuration.class);
+
+    private Map<String, String> map = new HashMap<>();
+
+    private String confPath;
 
     /* 常量的具体解释见后面的init() */
-    public static String BLOOM_SAVE_PATH;
-    public static String HDFS_ROOT;
-    public static String WAITING_TASKS_URLS;
-    public static String FINISHED_TASKS_URLS;
-    public static String NEW_TASKS_URLS;
-    public static String BLOOM_BACKUP_PATH;
-    public static org.apache.hadoop.conf.Configuration HDFS_SYSTEM_CONF;
-    public static String HDFS_SYSTEM_PATH;
-    public static String TEMP_DIR;
-    public static String BLOOM_TEMP_DIR;
-    public static int WORKER_DEAD_TIME;
-    public static int CHECK_TIME;
-    public static String ZK_SERVER_FILE_NAME = "zkserver";
-    public static String TEMP_SUFFIX = ".bak";
-    public static String BLOOM_CACHE_FILE_PREFIX = "bloomcache";
-    public static String BLOOM_CACHE_FILE_SUFFIX = ".dat";
-    public static String LOCAL_HOST;
-    public static int LOCAL_PORT;
-    public static int LOCAL_SHELL_PORT;
-    public static String ZK_CONNECT_STRING;
-    public static int BALANCE_SERVER_PORT;
-    public static int TASK_URLS_NUM;
-    public static int ZK_SESSION_TIMEOUT;
-    public static int ZK_INIT_TIMEOUT;
-    public static int ZK_RETRY_TIMES;
-    public static int ZK_RETRY_INTERVAL;
-    public static String HOME_PATH;
-    public static int WORKER_HEART_BEAT;
-    public static int TOMCAT_HEART_BEAT;
-    public static int LOCAL_ASYNC_THREAD_NUM;
-    private static URIBloomFilter URL_FILTER;
+    public String BLOOM_SAVE_PATH;
 
-    private Configuration() throws SAXException, IOException, ParserConfigurationException {
+    public String HDFS_ROOT;
+
+    public String WAITING_TASKS_URLS;
+
+    public String FINISHED_TASKS_URLS;
+
+    public String NEW_TASKS_URLS;
+
+    public String BLOOM_BACKUP_PATH;
+
+    public org.apache.hadoop.conf.Configuration HDFS_SYSTEM_CONF;
+
+    public String HDFS_SYSTEM_PATH;
+
+    public String TEMP_DIR;
+
+    public String BLOOM_TEMP_DIR;
+
+    public int WORKER_DEAD_TIME;
+
+    public int CHECK_TIME;
+
+    public String ZK_SERVER_FILE_NAME = "zkserver";
+
+    public String TEMP_SUFFIX = ".bak";
+
+    public String BLOOM_CACHE_FILE_PREFIX = "bloomcache";
+
+    public String BLOOM_CACHE_FILE_SUFFIX = ".dat";
+
+    public String LOCAL_HOST;
+
+    public int LOCAL_PORT;
+
+    public int LOCAL_SHELL_PORT;
+
+    public String ZK_CONNECT_STRING;
+
+    public int BALANCE_SERVER_PORT;
+
+    public int TASK_URLS_NUM;
+
+    public int ZK_SESSION_TIMEOUT;
+
+    public int ZK_INIT_TIMEOUT;
+
+    public int ZK_RETRY_TIMES;
+
+    public int ZK_RETRY_INTERVAL;
+
+    public String HOME_PATH;
+
+    public int WORKER_HEART_BEAT;
+
+    public int TOMCAT_HEART_BEAT;
+
+    public int LOCAL_ASYNC_THREAD_NUM;
+
+    private URIBloomFilter URL_FILTER;
+
+    Configuration() {
         /* 获取环境变量 */
         String HADOOP_HOME_PATH = System.getenv("HADOOP_HOME");
         HOME_PATH = System.getenv("WEBVEINS_HOME");
@@ -84,48 +120,59 @@ public class Configuration {
         confPath = HOME_PATH + "conf/";
 
         /* 读取配置信息失败，后续的任务肯定无法进行了 */
-        logger.info("Checking...");
-        if (!check(confPath + "core.xml")) {
-            System.exit(1);
-        }
-        logger.info("Loading default configuration...");
-        init();
-        logger.info("Loading user's configuration...");
-        parse();
+        try {
+            logger.info("Checking...");
+            if (!check(confPath + "core.xml")) {
+                System.exit(1);
+            }
+            logger.info("Loading default configuration...");
+            init();
+            logger.info("Loading user's configuration...");
+            parse();
 
         /* 初始化final变量 */
-        BLOOM_SAVE_PATH = map.get("bloom_save_path");
-        HDFS_ROOT = map.get("hdfs_root");
-        WAITING_TASKS_URLS = map.get("waiting_tasks_urls");
-        FINISHED_TASKS_URLS = map.get("finished_tasks_urls");
-        NEW_TASKS_URLS = map.get("new_tasks_urls");
-        BLOOM_BACKUP_PATH = map.get("bloom_backup_path");
-        TEMP_DIR = map.get("temp_dir");
-        BLOOM_TEMP_DIR = map.get("bloom_temp_dir");
-        LOCAL_HOST = map.get("local_host");
-        LOCAL_PORT = Integer.parseInt(map.get("local_port"));
-        LOCAL_SHELL_PORT = Integer.parseInt(map.get("local_shell_port"));
-        ZK_CONNECT_STRING = loadZKConnectString(
-                confPath + File.separator + ZK_SERVER_FILE_NAME);
-        BALANCE_SERVER_PORT = Integer.parseInt(map.get("balance_server_port"));
-        TASK_URLS_NUM = Integer.parseInt(map.get("task_urls_num"));
-        WORKER_DEAD_TIME = Integer.parseInt(map.get("worker_dead_time"));
-        CHECK_TIME = Integer.parseInt(map.get("check_time"));
-        ZK_SESSION_TIMEOUT = Integer.parseInt(map.get("zk_session_timeout"));
-        ZK_INIT_TIMEOUT = Integer.parseInt(map.get("zk_init_timeout"));
-        ZK_RETRY_TIMES = Integer.parseInt(map.get("zk_retry_times"));
-        ZK_RETRY_INTERVAL = Integer.parseInt(map.get("zk_retry_interval"));
-        WORKER_HEART_BEAT = Integer.parseInt(map.get("worker_heart_beat"));
-        TOMCAT_HEART_BEAT = Integer.parseInt(map.get("tomcat_heart_beat"));
-        LOCAL_ASYNC_THREAD_NUM = Integer.parseInt(map.get("local_async_thread_num"));
-        HDFS_SYSTEM_PATH = map.get("hdfs_system_path");
+            BLOOM_SAVE_PATH = map.get("bloom_save_path");
+            HDFS_ROOT = map.get("hdfs_root");
+            WAITING_TASKS_URLS = map.get("waiting_tasks_urls");
+            FINISHED_TASKS_URLS = map.get("finished_tasks_urls");
+            NEW_TASKS_URLS = map.get("new_tasks_urls");
+            BLOOM_BACKUP_PATH = map.get("bloom_backup_path");
+            TEMP_DIR = map.get("temp_dir");
+            BLOOM_TEMP_DIR = map.get("bloom_temp_dir");
+            LOCAL_HOST = map.get("local_host");
+            LOCAL_PORT = Integer.parseInt(map.get("local_port"));
+            LOCAL_SHELL_PORT = Integer.parseInt(map.get("local_shell_port"));
+            ZK_CONNECT_STRING = loadZKConnectString(
+                    confPath + File.separator + ZK_SERVER_FILE_NAME);
+            BALANCE_SERVER_PORT = Integer.parseInt(map.get("balance_server_port"));
+            TASK_URLS_NUM = Integer.parseInt(map.get("task_urls_num"));
+            WORKER_DEAD_TIME = Integer.parseInt(map.get("worker_dead_time"));
+            CHECK_TIME = Integer.parseInt(map.get("check_time"));
+            ZK_SESSION_TIMEOUT = Integer.parseInt(map.get("zk_session_timeout"));
+            ZK_INIT_TIMEOUT = Integer.parseInt(map.get("zk_init_timeout"));
+            ZK_RETRY_TIMES = Integer.parseInt(map.get("zk_retry_times"));
+            ZK_RETRY_INTERVAL = Integer.parseInt(map.get("zk_retry_interval"));
+            WORKER_HEART_BEAT = Integer.parseInt(map.get("worker_heart_beat"));
+            TOMCAT_HEART_BEAT = Integer.parseInt(map.get("tomcat_heart_beat"));
+            LOCAL_ASYNC_THREAD_NUM = Integer.parseInt(map.get("local_async_thread_num"));
+            HDFS_SYSTEM_PATH = map.get("hdfs_system_path");
 
         /* 读取HDFS信息 */
-        HDFS_SYSTEM_CONF = new org.apache.hadoop.conf.Configuration();
-        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "core-site.xml"));
-        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "hdfs-site.xml"));
-        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "mapred-site.xml"));
-        HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "yarn-site.xml"));
+            HDFS_SYSTEM_CONF = new org.apache.hadoop.conf.Configuration();
+            HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "core-site.xml"));
+            HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "hdfs-site.xml"));
+            HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "mapred-site.xml"));
+            HDFS_SYSTEM_CONF.addResource(new Path(HADOOP_HOME_PATH + "etc/hadoop/" + "yarn-site.xml"));
+        } catch (ParserConfigurationException e) {
+            logger.error(e.getMessage());
+            System.exit(1);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            System.exit(1);
+        } catch (SAXException e) {
+            logger.error(e.getMessage());
+            System.exit(1);
+        }
     }
 
     /**
@@ -184,24 +231,6 @@ public class Configuration {
         return URL_FILTER;
     }
 
-    public static synchronized Configuration getInstance() {
-        if (conf == null) {
-            try {
-                conf = new Configuration();
-            } catch (SAXException e) {
-                e.printStackTrace();
-                System.exit(1);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
-        return conf;
-    }
-
     /**
      * 设置默认值
      */
@@ -212,46 +241,67 @@ public class Configuration {
         map.put("waiting_tasks_urls", root + "/tasks/waitingtasks");
         map.put("finished_tasks_urls", root + "/tasks/finishedtasks");
         map.put("new_tasks_urls", root + "/tasks/newurls");
+
         /* bloom过滤器会定时备份，此为其存放的路径 */
         map.put("bloom_backup_path", root + "/bloom");
+
         /* 临时文件（UrlFile）的存放的本地路径 */
         map.put("temp_dir", HOME_PATH + "/data/temp");
+
         /* Worker与ZooKeeper断开连接后，经过DEADTIME后认为Worker死亡 */
         map.put("worker_dead_time", "120");
+
         /* Manager进行检查的间隔 */
         map.put("check_time", "45");
+
         /* 本机ip Worker节点需要配置 */
         map.put("local_host", "127.0.0.1");
+
         /* Worker服务使用的端口 Worker节点需要配置 */
         map.put("local_port", "22000");
+
         /* 命令行API服务所使用的端口 */
         map.put("local_shell_port", "22001");
+
         /* bloom过滤器的模式 */
         map.put("bloom_filter", "ram");
+
         /* bloom过滤器出错的概率 */
         map.put("bloom_filter_fpr", "0.0000001");
+
         /* bloom过滤器的预计最大容量 */
         map.put("bloom_filter_enums", "1000000");
+
         /* bloom过滤器过滤url文件的暂存位置 */
         map.put("bloom_temp_dir", HOME_PATH + "/data/bloom/temp");
+
         /* 均衡负载server端默认端口 */
         map.put("balance_server_port", "8081");
+
         /* 每个任务包含的URL的最大数量 */
         map.put("task_urls_num", "200");
+
         /* zookeeper的session过期时间 */
         map.put("zk_session_timeout", "40000");
+
         /* zookeeper客户端初始化连接等待的最长时间 */
         map.put("zk_init_timeout", "10000");
+
         /* zookeeper客户端断开后的重试次数 */
         map.put("zk_retry_times", "3");
+
         /* zookeeper客户端重试时的时间间隔 */
         map.put("zk_retry_interval", "2000");
+
         /* HDFS文件系统的nameservice路径 */
         map.put("hdfs_system_path", "");
+
         /* worker接取任务后的心跳频率 */
         map.put("worker_heart_beat", "15");
+
         /* tomcat服务器刷新数据的间隔 */
         map.put("tomcat_heart_beat", "5");
+
         /* 异步执行的线程数量 */
         map.put("local_async_thread_num", "10");
     }

@@ -14,10 +14,17 @@ import java.util.regex.Pattern;
  */
 public class BloomFileInfo {
     public static final String PREFIX = "#_";
+
     public static final String INFIX = "#";
+
     public static final String SUFFIX = "_#";
+
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private Long urlCounter;
+
     private Long expectedInsertions;
+
     private Double fpp;
 
     public BloomFileInfo() {
@@ -111,11 +118,11 @@ public class BloomFileInfo {
     @Override
     public String toString() {
         DecimalFormat df = new DecimalFormat("0.###############");
-        return Configuration.BLOOM_CACHE_FILE_PREFIX
+        return configuration.BLOOM_CACHE_FILE_PREFIX
                 + PREFIX + urlCounter
                 + INFIX + expectedInsertions
                 + INFIX + df.format(fpp.doubleValue()) + SUFFIX
-                + Configuration.BLOOM_CACHE_FILE_SUFFIX;
+                + configuration.BLOOM_CACHE_FILE_SUFFIX;
     }
 
     public Long getUrlCounter() {

@@ -10,25 +10,27 @@ import java.nio.charset.Charset;
  */
 public class MD5Maker {
     private Hasher hash;
+
     private String value;
-    public MD5Maker(){
+
+    public MD5Maker() {
         value = null;
         hash = Hashing.md5().newHasher();
     }
 
-    public MD5Maker(CharSequence charSequence){
+    public MD5Maker(CharSequence charSequence) {
         value = null;
         hash = Hashing.md5().newHasher();
         hash.putString(charSequence, Charset.defaultCharset());
     }
 
-    public void update(CharSequence charSequence){
-        if(value == null) {
+    public void update(CharSequence charSequence) {
+        if (value == null) {
             hash.putString(charSequence, Charset.defaultCharset());
         }
     }
 
-    public void reset(){
+    public void reset() {
         hash = Hashing.md5().newHasher();
         value = null;
     }
@@ -41,8 +43,8 @@ public class MD5Maker {
      * @return
      */
     @Override
-    public String toString(){
-        if(value == null){
+    public String toString() {
+        if (value == null) {
             value = hash.hash().toString();
         }
         return value;

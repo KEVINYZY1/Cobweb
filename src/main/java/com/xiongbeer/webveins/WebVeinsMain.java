@@ -1,16 +1,13 @@
 package com.xiongbeer.webveins;
 
 import com.xiongbeer.webveins.check.SelfTest;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
 import com.xiongbeer.webveins.utils.IdProvider;
 import com.xiongbeer.webveins.utils.InitLogger;
 import com.xiongbeer.webveins.zk.manager.Manager;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
@@ -24,18 +21,25 @@ import java.util.concurrent.TimeUnit;
  * Created by shaoxiong on 17-4-20.
  */
 @SuppressWarnings("restriction")
-public class WebVeinsMain {
+public enum WebVeinsMain {
+    INSTANCE;
+
     private static final Logger logger = LoggerFactory.getLogger(WebVeinsMain.class);
-    private static WebVeinsMain wvMain;
+
     private String serverId;
+
     private Manager manager;
+
     private DFSManager dfsManager;
+
     private CuratorFramework client;
+
     private Configuration configuration;
+
     private ScheduledExecutorService manageExector = Executors.newScheduledThreadPool(1);
 
-    private WebVeinsMain() throws IOException {
-        configuration = Configuration.getInstance();
+    WebVeinsMain() {
+        configuration = Configuration.INSTANCE;
         client = SelfTest.checkAndGetZK();
         serverId = new IdProvider().getIp();
         dfsManager = SelfTest.checkAndGetDFS();
@@ -58,14 +62,7 @@ public class WebVeinsMain {
             } catch (Throwable e) {
                 logger.warn("something wrong when managing: ", e);
             }
-        }, 0, Configuration.CHECK_TIME, TimeUnit.SECONDS);
-    }
-
-    public static synchronized WebVeinsMain getInstance() throws IOException {
-        if (wvMain == null) {
-            wvMain = new WebVeinsMain();
-        }
-        return wvMain;
+        }, 0, configuration.CHECK_TIME, TimeUnit.SECONDS);
     }
 
     private class StopSignalHandler implements SignalHandler {
@@ -90,7 +87,7 @@ public class WebVeinsMain {
             System.exit(1);
         }
         InitLogger.init();
-        WebVeinsMain main = WebVeinsMain.getInstance();
+        WebVeinsMain main = WebVeinsMain.INSTANCE;
         main.run();
     }
 }

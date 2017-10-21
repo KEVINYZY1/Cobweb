@@ -11,11 +11,17 @@ package com.xiongbeer.webveins.zk.task;
  */
 public class TaskData {
     private byte[] data;
+
     private int uniqueMarkup;
+
     private int progress;
+
     private byte status;
+
     private static short STATUS = 8;
+
     private static short U_MARKUP = 4;
+
     private static short PROGRRESS = 0;
 
     public TaskData() {
@@ -24,7 +30,7 @@ public class TaskData {
 
     public TaskData(byte[] data) {
         if (data.length != 9) {
-            throw new IllegalArgumentException("Illegel data value");
+            throw new IllegalArgumentException("Illegal data value");
         }
         this.data = data;
         status = data[STATUS];
@@ -72,7 +78,7 @@ public class TaskData {
     }
 
     public Task.Status getStatus() {
-        return Task.Status.get(new Byte(status).toString());
+        return Task.Status.get(Byte.toString(status));
     }
 
     public byte[] getBytes() {

@@ -11,7 +11,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.nio.charset.Charset;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class HeartBeatReqHandler extends ChannelInboundHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(LocalCrawlerHandler.class);
+    private static Configuration configuration = Configuration.INSTANCE;
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private volatile ScheduledFuture<?> heartBeat;
     private AtomicBoolean closeLongConnection;
@@ -46,8 +46,8 @@ public class HeartBeatReqHandler extends ChannelInboundHandlerAdapter {
                     .channel()
                     .eventLoop()
                     .scheduleAtFixedRate(new HeartBeatReqHandler.HeartBeatTask(ctx)
-                            , Configuration.WORKER_HEART_BEAT/3
-                            , Configuration.WORKER_HEART_BEAT/3, TimeUnit.SECONDS);
+                            , configuration.WORKER_HEART_BEAT/3
+                            , configuration.WORKER_HEART_BEAT/3, TimeUnit.SECONDS);
         } else if(type == MessageType.HEART_BEAT_RESP){
             String content = message.getAttachment().toString(Charset.defaultCharset());
             if(content != null){

@@ -1,10 +1,13 @@
 package com.xiongbeer.webveins;
 
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.HDFSManager;
 import com.xiongbeer.webveins.utils.Color;
-
 import com.xiongbeer.webveins.utils.InitLogger;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
 
@@ -14,8 +17,12 @@ import static org.apache.zookeeper.ZooDefs.Ids.OPEN_ACL_UNSAFE;
  * Created by shaoxiong on 17-4-9.
  */
 public class ClusterFormatter implements Watcher {
-    static private ClusterFormatter clusterFormatter;
+    private static ClusterFormatter clusterFormatter;
+
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private ZooKeeper client;
+
     private HDFSManager hdfsManager;
 
     /**
@@ -49,10 +56,10 @@ public class ClusterFormatter implements Watcher {
      * @throws IOException
      */
     public void initHDFS() throws IOException {
-        hdfsManager.mkdirs(Configuration.BLOOM_BACKUP_PATH);
-        hdfsManager.mkdirs(Configuration.NEW_TASKS_URLS);
-        hdfsManager.mkdirs(Configuration.WAITING_TASKS_URLS);
-        hdfsManager.mkdirs(Configuration.FINISHED_TASKS_URLS);
+        hdfsManager.mkdirs(configuration.BLOOM_BACKUP_PATH);
+        hdfsManager.mkdirs(configuration.NEW_TASKS_URLS);
+        hdfsManager.mkdirs(configuration.WAITING_TASKS_URLS);
+        hdfsManager.mkdirs(configuration.FINISHED_TASKS_URLS);
     }
 
     /**
@@ -71,16 +78,15 @@ public class ClusterFormatter implements Watcher {
      * @throws IOException
      */
     public void formatHDFS() throws IOException {
-        hdfsManager.delete(Configuration.BLOOM_BACKUP_PATH, true);
-        hdfsManager.delete(Configuration.NEW_TASKS_URLS, true);
-        hdfsManager.delete(Configuration.WAITING_TASKS_URLS, true);
-        hdfsManager.delete(Configuration.FINISHED_TASKS_URLS, true);
+        hdfsManager.delete(configuration.BLOOM_BACKUP_PATH, true);
+        hdfsManager.delete(configuration.NEW_TASKS_URLS, true);
+        hdfsManager.delete(configuration.WAITING_TASKS_URLS, true);
+        hdfsManager.delete(configuration.FINISHED_TASKS_URLS, true);
         initHDFS();
     }
 
     public static synchronized ClusterFormatter getInstance() {
         if (clusterFormatter == null) {
-            Configuration.getInstance();
             clusterFormatter = new ClusterFormatter();
         }
         return clusterFormatter;
@@ -98,12 +104,11 @@ public class ClusterFormatter implements Watcher {
     }
 
     private ClusterFormatter() {
-        Configuration.getInstance();
         try {
-            client = new ZooKeeper(Configuration.ZK_CONNECT_STRING
-                    , Configuration.ZK_SESSION_TIMEOUT, this);
-            hdfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF
-                    , Configuration.HDFS_SYSTEM_PATH);
+            client = new ZooKeeper(configuration.ZK_CONNECT_STRING
+                    , configuration.ZK_SESSION_TIMEOUT, this);
+            hdfsManager = new HDFSManager(configuration.HDFS_SYSTEM_CONF
+                    , configuration.HDFS_SYSTEM_PATH);
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(1);

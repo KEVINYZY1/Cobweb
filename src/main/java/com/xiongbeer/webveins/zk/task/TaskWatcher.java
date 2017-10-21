@@ -5,7 +5,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -13,9 +12,11 @@ import java.util.concurrent.TimeUnit;
  * Created by shaoxiong on 17-5-6.
  */
 public class TaskWatcher {
-    private CuratorFramework client;
-    private Logger logger = LoggerFactory.getLogger(TaskWatcher.class);
     public static int WAITING_TIME = 2 * 1000;
+
+    private CuratorFramework client;
+
+    private Logger logger = LoggerFactory.getLogger(TaskWatcher.class);
 
     public TaskWatcher(CuratorFramework client) {
         this.client = client;

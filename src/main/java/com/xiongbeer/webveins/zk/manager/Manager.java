@@ -6,7 +6,7 @@ import com.xiongbeer.webveins.Configuration;
 import com.xiongbeer.webveins.ZnodeInfo;
 import com.xiongbeer.webveins.exception.VeinsException;
 import com.xiongbeer.webveins.filter.Filter;
-import com.xiongbeer.webveins.saver.DFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
 import com.xiongbeer.webveins.utils.Async;
 import com.xiongbeer.webveins.utils.MD5Maker;
 import com.xiongbeer.webveins.zk.AsyncOpThreadPool;
@@ -29,8 +29,15 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -47,27 +54,48 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Manager {
     /**
      * Manager的状态
-     * INITIALIZING:  刚初始化，还未进行选举
-     * ELECTED:       主节点
-     * NOT_ELECTED:   从节点
-     * RECOVERING:    检测到主节点死亡，尝试恢复中
      */
     public enum Status {
-        INITIALIZING, ELECTED, NOT_ELECTED, RECOVERING
+        /*
+            INITIALIZING: 刚初始化，还未进行选举
+         */
+        INITIALIZING,
+        /*
+            ELECTED: 主节点
+        */
+        ELECTED,
+        /*
+            NOT_ELECTED: 从节点
+        */
+        NOT_ELECTED,
+        /*
+            RECOVERING: 检测到主节点死亡，尝试恢复中
+        */
+        RECOVERING
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(Manager.class);
     public static Manager manager;
+
+    private static final Logger logger = LoggerFactory.getLogger(Manager.class);
+
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private CuratorFramework client;
+
     private String serverId;
 
     private String managerPath;
+
     private Status status;
+
     private ScheduledExecutorService delayExector = Executors.newScheduledThreadPool(1);
+
     private ExecutorService asyncOpThreadPool = AsyncOpThreadPool.getInstance().getThreadPool();
 
     private WorkersWatcher workersWatcher;
+
     private TaskManager taskManager;
+
     private DFSManager dfsManager;
 
     private Map<String, String> workersMap = new HashMap<>();
@@ -84,8 +112,8 @@ public class Manager {
         this.dfsManager = dfsManager;
         this.filter = filter;
         taskManager = new TaskManager(client);
-        status = Status.INITIALIZING;
         workersWatcher = new WorkersWatcher(client);
+        status = Status.INITIALIZING;
         toBeActive();
     }
 
@@ -159,6 +187,7 @@ public class Manager {
      * 来接管失效的activeManager
      */
     private Watcher actManagerExistsWatcher = new Watcher() {
+        @Override
         public void process(WatchedEvent watchedEvent) {
             if (watchedEvent.getType() == Event.EventType.NodeDeleted) {
                 assert ZnodeInfo.ACTIVE_MANAGER_PATH.equals(watchedEvent.getPath());
@@ -175,6 +204,7 @@ public class Manager {
      * 失效时，尝试重新连接
      */
     private Watcher stdManagerExistsWatcher = new Watcher() {
+        @Override
         public void process(WatchedEvent watchedEvent) {
             assert managerPath.equals(watchedEvent.getPath());
             if (status == Status.NOT_ELECTED) {
@@ -475,8 +505,8 @@ public class Manager {
                     if (unfinishedTaskMap.containsKey(key)) {
                         unfinishedTaskMap.remove(key);
                     }
-                    dfsManager.move(Configuration.WAITING_TASKS_URLS + "/" + key,
-                            Configuration.FINISHED_TASKS_URLS + "/" + key);
+                    dfsManager.move(configuration.WAITING_TASKS_URLS + "/" + key,
+                            configuration.FINISHED_TASKS_URLS + "/" + key);
                     taskManager.releaseTask(ZnodeInfo.TASKS_PATH + '/' + key);
                     break;
                 case RUNNING:
@@ -498,7 +528,7 @@ public class Manager {
      * 但是无法保证znode中wvTasks与hdfs中waitingtasks中一致
      */
     private void syncWaitingTasks() throws IOException {
-        dfsManager.listFiles(Configuration.WAITING_TASKS_URLS, false)
+        dfsManager.listFiles(configuration.WAITING_TASKS_URLS, false)
                 .stream()
                 .map(Files::getNameWithoutExtension)
                 .forEach(fileName -> taskManager.submit(fileName));
@@ -516,7 +546,7 @@ public class Manager {
                 .filter(entry -> {
                     String name = entry.getKey();
                     Epoch epoch = entry.getValue();
-                    return !workersMap.containsKey(name) && epoch.getDifference() > Configuration.WORKER_DEAD_TIME;
+                    return !workersMap.containsKey(name) && epoch.getDifference() > configuration.WORKER_DEAD_TIME;
                 })
                 .forEach(entry -> {
                     String name = entry.getKey();
@@ -529,9 +559,9 @@ public class Manager {
      * 发布新的任务
      */
     private void publishNewTasks() throws IOException, VeinsException.FilterOverflowException {
-        String tempSavePath = Configuration.BLOOM_TEMP_DIR;
+        String tempSavePath = configuration.BLOOM_TEMP_DIR;
         List<String> hdfsUrlFiles = dfsManager.listFiles(
-                Configuration.NEW_TASKS_URLS, false);
+                configuration.NEW_TASKS_URLS, false);
         if (hdfsUrlFiles.size() == 0) {
             /* 没有需要处理的新URL文件 */
             return;
@@ -589,7 +619,7 @@ public class Manager {
         Optional.ofNullable(tempSaveDir.listFiles()).ifPresent(files ->
                 Arrays.stream(files)
                         .filter(File::isFile)
-                        .filter(file -> !file.getAbsolutePath().endsWith(Configuration.TEMP_SUFFIX))
+                        .filter(file -> !file.getAbsolutePath().endsWith(configuration.TEMP_SUFFIX))
                         .forEach(File::delete)
         );
     }
@@ -603,11 +633,11 @@ public class Manager {
         Optional.ofNullable(dir.listFiles()).ifPresent(files ->
                 Arrays.stream(files)
                         .filter(File::isFile)
-                        .filter(file -> file.getAbsolutePath().endsWith(Configuration.TEMP_SUFFIX))
+                        .filter(file -> file.getAbsolutePath().endsWith(configuration.TEMP_SUFFIX))
                         .forEach(file -> {
                             String path = file.getAbsolutePath();
                             file.renameTo(new File(path.substring(0,
-                                    path.length() - Configuration.TEMP_SUFFIX.length())));
+                                    path.length() - configuration.TEMP_SUFFIX.length())));
                         })
         );
     }
@@ -633,7 +663,7 @@ public class Manager {
                 */
                 if (!dfsManager.exist(filePath)) {
                     dfsManager.uploadFile(filePath,
-                            Configuration.WAITING_TASKS_URLS + '/' + file.getName());
+                            configuration.WAITING_TASKS_URLS + '/' + file.getName());
                 }
                 taskManager.submit(file.getName());
             }
@@ -676,26 +706,26 @@ public class Manager {
      */
     public void backUpFilterCache() throws IOException {
         /* 备份之前删除原来的缓存文件 */
-        File localSave = new File(Configuration.BLOOM_SAVE_PATH);
+        File localSave = new File(configuration.BLOOM_SAVE_PATH);
         Optional.ofNullable(localSave.listFiles()).ifPresent(files ->
                 Arrays.stream(files)
                         .filter(File::isFile)
                         .forEach(File::delete)
         );
         /* 备份至本地 */
-        String bloomFilePath = filter.save(Configuration.BLOOM_SAVE_PATH);
+        String bloomFilePath = filter.save(configuration.BLOOM_SAVE_PATH);
         /* 上传至dfs */
-        dfsManager.uploadFile(bloomFilePath, Configuration.BLOOM_BACKUP_PATH);
+        dfsManager.uploadFile(bloomFilePath, configuration.BLOOM_BACKUP_PATH);
 
         /* 删除dfs上旧的缓存文件，去除新缓存文件的TEMP_SUFFIX后缀 */
         List<String> cacheFiles
-                = dfsManager.listFiles(Configuration.BLOOM_BACKUP_PATH, false);
+                = dfsManager.listFiles(configuration.BLOOM_BACKUP_PATH, false);
         for (String cache : cacheFiles) {
-            if (!cache.endsWith(Configuration.TEMP_SUFFIX)) {
+            if (!cache.endsWith(configuration.TEMP_SUFFIX)) {
                 dfsManager.delete(cache, false);
             } else {
                 String newName = cache.substring(0,
-                        cache.length() - Configuration.TEMP_SUFFIX.length());
+                        cache.length() - configuration.TEMP_SUFFIX.length());
                 dfsManager.move(cache, newName);
             }
         }
@@ -728,14 +758,14 @@ public class Manager {
                             /* 到filter中确认url是不是已经存在，已经存在就丢弃 */
                             if (filter.put(line)) {
                                 md5.update(newLine);
-                                if (newUrlCounter.get() <= Configuration.TASK_URLS_NUM) {
+                                if (newUrlCounter.get() <= configuration.TASK_URLS_NUM) {
                                     newUrls.append(newLine);
                                     newUrlCounter.incrementAndGet();
                                 } else {
                                     /* 文件名是根据其内容生成的md5值 */
                                     String urlFileName = saveDir + File.separator
                                             + md5.toString()
-                                            + Configuration.TEMP_SUFFIX;
+                                            + configuration.TEMP_SUFFIX;
                                     Files.write(newUrls.toString().getBytes()
                                             , new File(urlFileName));
                                     newUrls.delete(0, newUrls.length());
@@ -752,7 +782,7 @@ public class Manager {
                             if (newUrls.length() > 0) {
                                 String urlFileName = saveDir + File.separator
                                         + md5.toString()
-                                        + Configuration.TEMP_SUFFIX;
+                                        + configuration.TEMP_SUFFIX;
                                 try {
                                     Files.write(newUrls.toString().getBytes()
                                             , new File(urlFileName));

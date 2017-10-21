@@ -1,8 +1,8 @@
 package com.xiongbeer.webveins.service.local;
 
 import com.xiongbeer.webveins.Configuration;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
+import com.xiongbeer.webveins.saver.dfs.HDFSManager;
 import com.xiongbeer.webveins.service.protocol.Client;
 import com.xiongbeer.webveins.service.protocol.message.MessageType;
 import com.xiongbeer.webveins.service.protocol.message.ProcessDataProto.ProcessData;
@@ -22,16 +22,18 @@ import java.util.UUID;
  * Created by shaoxiong on 17-4-26.
  */
 public class CrawlerBootstrap extends Bootstrap {
-    private static int WIRTE_LENGTH = 1024;
+    private static int WRITE_LENGTH = 1024;
+
+    private static Configuration configuration = Configuration.INSTANCE;
+
     private static DFSManager dfsManager;
+
     private static final String savePath;
 
-
     static{
-    	Configuration.getInstance();
     	/* 暂存至本地的TEMP_DIR */
-    	savePath = Configuration.TEMP_DIR;
-    	dfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF, Configuration.HDFS_SYSTEM_PATH);
+    	savePath = configuration.TEMP_DIR;
+    	dfsManager = new HDFSManager(configuration.HDFS_SYSTEM_CONF, configuration.HDFS_SYSTEM_PATH);
     }
     
     public CrawlerBootstrap(Action action){
@@ -64,15 +66,15 @@ public class CrawlerBootstrap extends Bootstrap {
         File file = new File(path+tempName);
         FileOutputStream fos = new FileOutputStream(file);
         FileChannel channel = fos.getChannel();
-        ByteBuffer outBuffer = ByteBuffer.allocate(WIRTE_LENGTH);
+        ByteBuffer outBuffer = ByteBuffer.allocate(WRITE_LENGTH);
         for(String url:newUrls){
             String line = url + System.getProperty("line.separator");
             md5Maker.update(line);
             byte[] data = line.getBytes();
             int len = data.length;
-            for(int i=0; i<=len/WIRTE_LENGTH; ++i){
-                outBuffer.put(data, i*WIRTE_LENGTH,
-                        i==len/WIRTE_LENGTH?len%WIRTE_LENGTH:WIRTE_LENGTH);
+            for(int i=0; i<=len/WRITE_LENGTH; ++i){
+                outBuffer.put(data, i*WRITE_LENGTH,
+                        i==len/WRITE_LENGTH?len%WRITE_LENGTH:WRITE_LENGTH);
                 outBuffer.flip();
                 channel.write(outBuffer);
                 outBuffer.clear();
@@ -83,7 +85,7 @@ public class CrawlerBootstrap extends Bootstrap {
         String newName = md5Maker.toString();
         file.renameTo(new File(path+newName));
         /* 上传至HDFS */
-        dfsManager.uploadFile(path+newName, Configuration.NEW_TASKS_URLS);
+        dfsManager.uploadFile(path+newName, Configuration.INSTANCE.NEW_TASKS_URLS);
         /* 上传成功后删除临时文件 */
         file.delete();
         return path;

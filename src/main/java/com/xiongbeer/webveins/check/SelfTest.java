@@ -1,10 +1,9 @@
 package com.xiongbeer.webveins.check;
 
 import com.xiongbeer.webveins.Configuration;
-import com.xiongbeer.webveins.WebVeinsMain;
 import com.xiongbeer.webveins.ZnodeInfo;
-import com.xiongbeer.webveins.saver.DFSManager;
-import com.xiongbeer.webveins.saver.HDFSManager;
+import com.xiongbeer.webveins.saver.dfs.DFSManager;
+import com.xiongbeer.webveins.saver.dfs.HDFSManager;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -22,6 +21,8 @@ import java.util.Optional;
  */
 public class SelfTest {
     private static final Logger logger = LoggerFactory.getLogger(SelfTest.class);
+
+    private static Configuration configuration = Configuration.INSTANCE;
 
     /**
      * 检查某个class是否已经在运行
@@ -63,10 +64,10 @@ public class SelfTest {
         CuratorFramework client;
         try {
             RetryPolicy retryPolicy =
-                    new ExponentialBackoffRetry(Configuration.ZK_RETRY_INTERVAL, Configuration.ZK_RETRY_TIMES);
+                    new ExponentialBackoffRetry(configuration.ZK_RETRY_INTERVAL, configuration.ZK_RETRY_TIMES);
             client = CuratorFrameworkFactory
-                    .newClient(Configuration.ZK_CONNECT_STRING
-                            , Configuration.ZK_SESSION_TIMEOUT, Configuration.ZK_INIT_TIMEOUT, retryPolicy);
+                    .newClient(configuration.ZK_CONNECT_STRING
+                            , configuration.ZK_SESSION_TIMEOUT, configuration.ZK_INIT_TIMEOUT, retryPolicy);
             client.start();
             client.checkExists().forPath(ZnodeInfo.TASKS_PATH);
             client.checkExists().forPath(ZnodeInfo.MANAGERS_PATH);
@@ -86,11 +87,11 @@ public class SelfTest {
     public static DFSManager checkAndGetDFS() {
         DFSManager hdfsManager;
         try {
-            hdfsManager = new HDFSManager(Configuration.HDFS_SYSTEM_CONF, Configuration.HDFS_SYSTEM_PATH);
-            hdfsManager.exist(Configuration.BLOOM_BACKUP_PATH);
-            hdfsManager.exist(Configuration.FINISHED_TASKS_URLS);
-            hdfsManager.exist(Configuration.WAITING_TASKS_URLS);
-            hdfsManager.exist(Configuration.NEW_TASKS_URLS);
+            hdfsManager = new HDFSManager(configuration.HDFS_SYSTEM_CONF, configuration.HDFS_SYSTEM_PATH);
+            hdfsManager.exist(configuration.BLOOM_BACKUP_PATH);
+            hdfsManager.exist(configuration.FINISHED_TASKS_URLS);
+            hdfsManager.exist(configuration.WAITING_TASKS_URLS);
+            hdfsManager.exist(configuration.NEW_TASKS_URLS);
         } catch (Throwable e) {
             hdfsManager = null;
             logger.error(e.getMessage());

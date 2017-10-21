@@ -25,6 +25,7 @@ import java.util.concurrent.*;
 public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
     public static ExecutorService workerLoop = Executors.newSingleThreadExecutor();
     private static Logger logger = LoggerFactory.getLogger(WorkerProxyHandler.class);
+    private static Configuration configuration = Configuration.INSTANCE;
     private volatile ScheduledFuture<?> heartBeat;
     private volatile int progress;
     private static Epoch currentTask;
@@ -83,7 +84,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
                 if(currentTask != null){
                     builder.setType(MessageType.CRAWLER_RESP.getValue());
                     builder.setStatus(ProcessData.CrawlerStatus.RUNNING);
-                    builder.setUrlFilePath(Configuration.WAITING_TASKS_URLS +
+                    builder.setUrlFilePath(configuration.WAITING_TASKS_URLS +
                             "/" + currentTask.getTaskName());
                     builder.setUrlFileName(currentTask.getTaskName());
                     ctx.writeAndFlush(builder.build());
@@ -124,7 +125,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
         ProcessData.Builder builder = ProcessData.newBuilder();
         builder.setType(MessageType.CRAWLER_RESP.getValue());
         builder.setStatus(ProcessData.CrawlerStatus.RUNNING);
-        builder.setUrlFilePath(Configuration.WAITING_TASKS_URLS + "/" + task.getTaskName());
+        builder.setUrlFilePath(configuration.WAITING_TASKS_URLS + "/" + task.getTaskName());
         builder.setUrlFileName(task.getTaskName());
         builder.setAttachment(ByteString.copyFrom(Integer.toString(task.getTaskData().getProgress()).getBytes()));
         ctx.writeAndFlush(builder.build());
@@ -135,7 +136,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
                 .eventLoop()
                 .scheduleAtFixedRate(new HeartBeat(task.getTaskName()
                         , task.getTaskData().getUniqueMarkup(), ctx.channel()), 0
-                        , Configuration.WORKER_HEART_BEAT, TimeUnit.SECONDS);
+                        , configuration.WORKER_HEART_BEAT, TimeUnit.SECONDS);
     }
 
     class HeartBeat implements Runnable {
@@ -156,7 +157,6 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
                 logger.warn("crawler client lose connection");
                 heartBeat.cancel(true);
             }
-            TaskData taskData = new TaskData();
             taskData.setProgress(progress);
             worker.beat(taskName, taskData);
             ProcessData.Builder builder = ProcessData.newBuilder();
