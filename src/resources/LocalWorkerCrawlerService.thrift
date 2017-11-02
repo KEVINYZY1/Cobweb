@@ -1,10 +1,10 @@
 namespace java com.xiongbeer.webveins.service.rpc
 
 struct ProcessData {
-1: optional i32 type;
-2: optional i32 crcCode;
-3: optional i32 length;
-4: optional i64 sessionId;
+    1: optional i32 type;
+    2: optional i32 crcCode;
+    3: optional i32 length;
+    4: optional i64 sessionId;
 }
 
 enum CrawlerStatus {
@@ -27,7 +27,7 @@ service LocalWorkerCrawlerService {
     /*
         获取某个任务最后一次保存的进度
      */
-    string getLastProgressRate(1:string taskId);
+    i32 getLastProgressRate(1:string taskId);
 
     /*
         worker完成任务，报告状态
@@ -41,16 +41,36 @@ service LocalWorkerCrawlerService {
         获取新的任务
         如果队列是空的，那么这个操作会阻塞到有任务为止
 
-        @return false：正在进行的任务数如果等于预设的最大队列长度，领取新任务的操作会被wvWorker进程拒绝
+        @return null：正在进行的任务数如果等于预设的最大队列长度，领取新任务的操作会被wvWorker进程拒绝
      */
-    bool getNewTask(1:string taskFilePath, 2:string lastProgressRate);
+    list<string> getNewTask();
+
+    /*
+        获取任务黑名单列表，在黑名单中的任务不会被wvWorker进程领取
+     */
+    list<string> getBlackList();
+
+    /*
+        将一个任务加入黑名单
+     */
+    bool addToBlackList(1:string taskId);
+
+    /*
+        将一个任务从黑名单中移除
+    */
+    bool removeFromBlackList(1:string taskId);
+
+    /*
+        清空黑名单列表
+    */
+    bool clearBlackList();
 
     /*
         更新某个任务的进度
 
         @return false：失败的原因主要为网络原因或者zk Server压力过大，服务降级导致此功能被暂时关闭
      */
-    bool updateTaskProgressRate(1:string taskId, 2:string newProgressRate);
+    bool updateTaskProgressRate(1:string taskId, 2:i32 newProgressRate, 3:i32 markup, 4:byte status);
 
     /*
         获取所有workers的状态信息

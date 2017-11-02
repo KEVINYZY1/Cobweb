@@ -12,6 +12,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 
 /**
  * Created by shaoxiong on 17-4-9.
@@ -61,6 +63,11 @@ public class Worker {
         taskWatcher.waitForTask();
     }
 
+    /**
+     * 设置Worker的工作状态
+     *
+     * @param taskName 正在执行任务的ID，为空则说明当前没有任务
+     */
     public void setStatus(String taskName) {
         try {
             client.setData().forPath(workerPath, taskName.getBytes());
@@ -70,17 +77,15 @@ public class Worker {
     }
 
     public Epoch takeTask() {
-        Epoch task;
-        task = taskWorker.takeTask();
-        if (task != null) {
-            setStatus(task.getTaskName());
-        }
-        return task;
+        Optional<Epoch> task = Optional.ofNullable(taskWorker.takeTask());
+        task.ifPresent((val) -> setStatus(val.getTaskName()));
+        return task.get();
     }
 
-    public void beat(String taskName, TaskData taskData) {
-        taskWorker.setRunningTask(ZnodeInfo.TASKS_PATH + '/' + taskName, -1, taskData);
+    public boolean beat(String taskName, TaskData taskData) {
+        boolean res = taskWorker.setRunningTask(ZnodeInfo.TASKS_PATH + '/' + taskName, -1, taskData);
         setStatus(taskName);
+        return res;
     }
 
     public boolean discardTask(String taskPath) {

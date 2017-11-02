@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -60,7 +61,11 @@ public class Task {
         try {
             client.getChildren()
                     .forPath(ZnodeInfo.TASKS_PATH)
-                    .forEach(task -> checkTask(ZnodeInfo.NEW_TASK_PATH + task));
+                    .forEach((task) -> {
+                        String taskPath = ZnodeInfo.NEW_TASK_PATH + task;
+                        Optional<Epoch> info = Optional.ofNullable(checkTask(taskPath));
+                        info.ifPresent(val -> tasksInfo.put(taskPath, val));
+                    });
         } catch (Exception e) {
             logger.warn("failed to update tasks' information", e);
         }
@@ -69,13 +74,12 @@ public class Task {
     /**
      * 检查任务
      * <p>
-     * 记录任务上一次修改的时间
-     * 检查任务是否已经完成，若
-     * 完成则release它
+     * 获取任务的信息
      *
      * @param path
      */
-    public void checkTask(String path) {
+    public Epoch checkTask(String path) {
+        Epoch res = null;
         try {
             String taskName = new File(path).getName();
             Stat stat = new Stat();
@@ -83,11 +87,11 @@ public class Task {
                     .storingStatIn(stat)
                     .forPath(path);
             TaskData taskData = new TaskData(data);
-            Epoch taskInfo = new Epoch(taskName, stat.getMtime(), stat.getVersion(), taskData);
-            tasksInfo.put(taskName, taskInfo);
+            res = new Epoch(taskName, stat.getMtime(), stat.getVersion(), taskData);
         } catch (Exception e) {
             logger.warn("Check task: " + path + " failed.", e);
         }
+        return res;
     }
 
 

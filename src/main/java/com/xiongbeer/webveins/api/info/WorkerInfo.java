@@ -17,6 +17,7 @@ import java.util.List;
  */
 public class WorkerInfo implements SimpleInfo {
     private List<JData> info;
+
     private CuratorFramework client;
 
     public WorkerInfo(CuratorFramework client) {

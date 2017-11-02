@@ -16,6 +16,7 @@ import java.util.List;
  */
 public class FilterInfo implements SimpleInfo {
     private DFSManager dfsManager;
+
     private List<JData> info;
 
     public FilterInfo(DFSManager dfsManager) {
@@ -38,7 +39,7 @@ public class FilterInfo implements SimpleInfo {
                 data.setUrlsNum(bloomFile.getUrlCounter());
                 info.add(data);
             } catch (Exception e) {
-                //drop
+                // drop
             }
         }
         return this;

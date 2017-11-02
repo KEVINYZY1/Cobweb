@@ -19,6 +19,7 @@ import java.util.List;
  */
 public class TaskInfo implements SimpleInfo {
     private List<JData> info;
+
     private CuratorFramework client;
 
     public TaskInfo(CuratorFramework client) {

@@ -24,7 +24,7 @@ public class WarmUp implements PageProcessor {
             .setSleepTime(1000).setUseGzip(true)
             .setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
 
-    private static Set<String> newUrls = new ConcurrentSet<String>();
+    private static Set<String> newUrls = new ConcurrentSet<>();
 
     @Override
     public void process(Page page) {

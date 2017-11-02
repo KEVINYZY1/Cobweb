@@ -5,10 +5,10 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Created by shaoxiong on 17-4-10.
@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 public class TaskWorker extends Task {
 
     /* 任务黑名单 */
-    private static List<String> blackList = new LinkedList<String>();
+    private static Set<String> blackList = new ConcurrentSkipListSet<>();
 
     public TaskWorker(CuratorFramework client) {
         super(client);
@@ -41,7 +41,7 @@ public class TaskWorker extends Task {
             String key = (String) entry.getKey();
             Epoch value = (Epoch) entry.getValue();
             if (!blackList.contains(value) && value.getStatus() == Status.WAITING) {
-                if (setRunningTask(ZnodeInfo.TASKS_PATH + "/" + key,
+                if (setRunningTask(key,
                         value.getDataVersion(), value.getTaskData())) {
                     task = value;
                     break;
@@ -105,6 +105,22 @@ public class TaskWorker extends Task {
         return res;
     }
 
+
+    /**
+     * 刷新本地zk视图
+     *
+     * @return
+     */
+    public boolean sync() {
+        boolean res = true;
+        try {
+            client.sync().forPath(ZnodeInfo.ROOT_PATH);
+        } catch (Exception e) {
+            res = false;
+            logger.error("synchorized local view failed", e);
+        }
+        return res;
+    }
 
     /**
      * 尝试将一个task节点置为running状态

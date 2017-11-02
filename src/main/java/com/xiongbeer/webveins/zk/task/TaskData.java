@@ -1,6 +1,8 @@
 package com.xiongbeer.webveins.zk.task;
 
 
+import com.xiongbeer.webveins.utils.Bytes;
+
 /**
  * HIGH                    --->                   LOW
  * -----------------------------------------------------------
@@ -22,7 +24,7 @@ public class TaskData {
 
     private static short U_MARKUP = 4;
 
-    private static short PROGRRESS = 0;
+    private static short PROGRESS = 0;
 
     public TaskData() {
         data = new byte[9];
@@ -34,16 +36,8 @@ public class TaskData {
         }
         this.data = data;
         status = data[STATUS];
-        int foo = 0;
-        for (int i = PROGRRESS; i < PROGRRESS + 4; ++i) {
-            foo += (data[i] & 0xff) << (i - PROGRRESS) * 8;
-        }
-        progress = foo;
-        foo = 0;
-        for (int i = U_MARKUP; i < U_MARKUP + 4; ++i) {
-            foo += (data[i] & 0xff) << (i - U_MARKUP) * 8;
-        }
-        uniqueMarkup = foo;
+        progress = Bytes.bytesToInt(new byte[]{data[PROGRESS], data[PROGRESS + 1], data[PROGRESS + 2], data[PROGRESS + 3]});
+        uniqueMarkup = Bytes.bytesToInt(new byte[]{data[U_MARKUP], data[U_MARKUP + 1], data[U_MARKUP + 2], data[U_MARKUP + 3]});
     }
 
     public TaskData setStatus(Task.Status status) {
@@ -55,16 +49,18 @@ public class TaskData {
 
     public TaskData setProgress(int progress) {
         this.progress = progress;
-        for (int i = PROGRRESS; i < PROGRRESS + 4; ++i) {
-            data[i] = (byte) (progress >> (i - PROGRRESS) * 8);
+        byte[] bytes = Bytes.intToBytes(progress);
+        for (int i = 0; i < 4; ++i) {
+            data[i + PROGRESS] = bytes[i];
         }
         return this;
     }
 
     public TaskData setUniqueMarkup(int uniqueMarkup) {
         this.uniqueMarkup = uniqueMarkup;
-        for (int i = U_MARKUP; i < U_MARKUP + 4; ++i) {
-            data[i] = (byte) (uniqueMarkup >> (i - U_MARKUP) * 8);
+        byte[] bytes = Bytes.intToBytes(uniqueMarkup);
+        for (int i = 0; i < 4; ++i) {
+            data[i + U_MARKUP] = bytes[i];
         }
         return this;
     }

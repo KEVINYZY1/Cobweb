@@ -3,6 +3,7 @@ package com.xiongbeer.webveins;
 import com.xiongbeer.webveins.check.SelfTest;
 import com.xiongbeer.webveins.saver.dfs.DFSManager;
 import com.xiongbeer.webveins.service.protocol.Server;
+import com.xiongbeer.webveins.service.rpc.ServiceServer;
 import com.xiongbeer.webveins.utils.IdProvider;
 import com.xiongbeer.webveins.utils.InitLogger;
 import com.xiongbeer.webveins.zk.worker.Worker;
@@ -48,8 +49,10 @@ public enum WebVeinsServer {
 
     public void runServer() throws IOException {
         worker = new Worker(client, serverId);
-        server = new Server(configuration.LOCAL_PORT, client, dfsManager, worker);
-        server.bind();
+        ServiceServer server = ServiceServer.INSTANCE;
+        // server = new Server(configuration.LOCAL_PORT, client, dfsManager, worker);
+        server.init(worker);
+        server.run();
     }
 
     public void run() {

@@ -1,5 +1,7 @@
 package com.xiongbeer.webveins.zk.task;
 
+import com.alibaba.fastjson.JSON;
+
 import java.util.Date;
 
 /**
@@ -17,6 +19,10 @@ public class Epoch {
     private final int dataVersion;
 
     private final TaskData taskData;
+
+    public static Epoch parse(String resource) {
+        return JSON.parseObject(resource, Epoch.class);
+    }
 
     public long getDifference() {
         return (checkTime.getTime() - previousChangeTime.getTime()) / 1000;
@@ -55,11 +61,8 @@ public class Epoch {
         return taskName;
     }
 
-    @Override
-    public String toString() {
-        return "[taskName: " + taskName +
-                "previousChangeTime: " + previousChangeTime.toString()
-                + "," + "checkTime: " + checkTime.toString()
-                + "," + "timeDifference: " + getDifference() + "s" + "]";
+    public String toJson() {
+        return JSON.toJSONString(this);
     }
+
 }

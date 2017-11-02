@@ -1,7 +1,7 @@
 package com.xiongbeer.webveins.service.rpc;
 
-import com.xiongbeer.webveins.service.rpc.LocalWorkerCrawlerService.Iface;
-import com.xiongbeer.webveins.service.rpc.LocalWorkerCrawlerService.Processor;
+import com.xiongbeer.webveins.service.rpc.LocalWorkerCrawlerServiceBase.Iface;
+import com.xiongbeer.webveins.service.rpc.LocalWorkerCrawlerServiceBase.Processor;
 import com.xiongbeer.webveins.zk.worker.Worker;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -25,21 +25,21 @@ public enum ServiceServer {
 
     }
 
-    LocalWorkerCrawlerService.Processor<WorkerCrawlerServiceImpl> processor;
+    Processor<WorkerCrawlerServiceImpl> processor;
 
     WorkerCrawlerServiceImpl impl;
 
-    Optional<TServer> server;
+    Optional<TServer> server = Optional.empty();
 
-    static final int RPC_SERVER_PORT = 9000;
+    static final int RPC_SERVER_PORT = 9001;
 
-    private void simple(Processor<Iface> processor, Worker worker) {
+    public void init(Worker worker) {
         if (isServing()) {
             return;
         }
         try {
             impl = new WorkerCrawlerServiceImpl(worker);
-            processor = new LocalWorkerCrawlerService.Processor<>(impl);
+            processor = new Processor<>(impl);
             TServerTransport serverTransport = new TServerSocket(RPC_SERVER_PORT);
             server = Optional.of(
                     new TThreadPoolServer(
@@ -49,25 +49,22 @@ public enum ServiceServer {
         }
     }
 
-    boolean isServing() {
-        if (server.isPresent() && server.get().isServing()) {
-            return true;
-        }
-        return false;
+    public boolean isServing() {
+        return server.isPresent() && server.get().isServing();
     }
 
-    void stop() {
+    public void stop() {
         logger.info("Stopping the local worker-crawler server...");
         server.ifPresent(TServer::stop);
     }
 
-    void run() {
+    public void run() {
         logger.info("Starting the local worker-crawler server...");
         server.ifPresent(TServer::serve);
     }
 
     /*SSL TODO*/
-    public void secure(LocalWorkerCrawlerService.Processor<LocalWorkerCrawlerService.Iface> processor) {
+    public void secure(Processor<Iface> processor) {
 
     }
 }
