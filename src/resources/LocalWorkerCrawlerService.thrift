@@ -1,4 +1,4 @@
-namespace java com.xiongbeer.webveins.service.rpc
+namespace java com.xiongbeer.cobweb.service.rpc
 
 struct ProcessData {
     1: optional i32 type;

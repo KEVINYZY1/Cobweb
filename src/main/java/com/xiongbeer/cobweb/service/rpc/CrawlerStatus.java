@@ -7,11 +7,9 @@
 package com.xiongbeer.cobweb.service.rpc;
 
 
-import java.util.Map;
-import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum CrawlerStatus implements org.apache.thrift.TEnum {
+public enum CrawlerStatus implements TEnum {
   NULL(0),
   WAITING(1),
   RUNNING(2),
