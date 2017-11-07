@@ -1,6 +1,5 @@
 package com.xiongbeer.cobweb.zk.resources;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class INodeDirectory implements INodeAttributes {
     }
 
     @Override
-    public Path getPath() {
+    public String getPath() {
         return null;
     }
 
