@@ -1,7 +1,7 @@
 package com.xiongbeer.cobweb.check;
 
 import com.xiongbeer.cobweb.Configuration;
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.saver.dfs.HDFSManager;
 import org.apache.curator.RetryPolicy;
@@ -69,9 +69,9 @@ public class SelfTest {
                     .newClient(configuration.ZK_CONNECT_STRING
                             , configuration.ZK_SESSION_TIMEOUT, configuration.ZK_INIT_TIMEOUT, retryPolicy);
             client.start();
-            client.checkExists().forPath(ZnodeInfo.TASKS_PATH);
-            client.checkExists().forPath(ZnodeInfo.MANAGERS_PATH);
-            client.checkExists().forPath(ZnodeInfo.WORKERS_PATH);
+            client.checkExists().forPath(ZNodeStaticSetting.TASKS_PATH);
+            client.checkExists().forPath(ZNodeStaticSetting.MANAGERS_PATH);
+            client.checkExists().forPath(ZNodeStaticSetting.WORKERS_PATH);
         } catch (Throwable e) {
             client = null;
             logger.error(e.getMessage());

@@ -6,6 +6,12 @@ package com.xiongbeer.cobweb.zk.resources;
 public interface INodeAttributes {
     boolean isDirectory();
 
+    String getPath();
+
+    void lock();
+
+    void unlock();
+
     boolean isLocked();
 
     String getMarkup();

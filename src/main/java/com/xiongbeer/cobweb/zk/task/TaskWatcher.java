@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk.task;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +29,10 @@ public class TaskWatcher {
     public void waitForTask() {
         try {
             while (true) {
-                List<String> children = client.getChildren().forPath(ZnodeInfo.TASKS_PATH);
+                List<String> children = client.getChildren().forPath(ZNodeStaticSetting.TASKS_PATH);
                 for (String child : children) {
                     byte[] data = client.getData()
-                            .forPath(ZnodeInfo.NEW_TASK_PATH + child);
+                            .forPath(ZNodeStaticSetting.NEW_TASK_PATH + child);
                     TaskData taskData = new TaskData(data);
                     if (taskData.getStatus() == Task.Status.WAITING) {
                         return;

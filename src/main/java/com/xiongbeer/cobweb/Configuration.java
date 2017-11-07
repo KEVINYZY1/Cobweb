@@ -2,7 +2,7 @@ package com.xiongbeer.cobweb;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.filter.URIBloomFilter;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.saver.dfs.HDFSManager;
@@ -351,7 +351,7 @@ public enum Configuration {
 
     public String loadZKConnectString(String filePath) throws IOException {
         List<String> content = Files.readLines(new File(filePath), Charset.defaultCharset());
-        return Joiner.on(',').skipNulls().join(content) + ZnodeInfo.ROOT_PATH;
+        return Joiner.on(',').skipNulls().join(content) + ZNodeStaticSetting.ROOT_PATH;
     }
 
     public boolean check(String url) throws SAXException {

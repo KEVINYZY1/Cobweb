@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.api.info;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.api.SimpleInfo;
 import com.xiongbeer.cobweb.api.jsondata.JData;
 import com.xiongbeer.cobweb.api.jsondata.TaskJson;
@@ -30,13 +30,13 @@ public class TaskInfo implements SimpleInfo {
     public TaskInfo getCurrentTasks() {
         try {
             List<String> children =
-                    client.getChildren().forPath(ZnodeInfo.TASKS_PATH);
+                    client.getChildren().forPath(ZNodeStaticSetting.TASKS_PATH);
             byte[] data;
             for (String child : children) {
                 Stat stat = new Stat();
                 data = client.getData()
                         .storingStatIn(stat)
-                        .forPath(ZnodeInfo.NEW_TASK_PATH + child);
+                        .forPath(ZNodeStaticSetting.NEW_TASK_PATH + child);
                 info.add(taskInfo(stat, child, data));
             }
             return this;

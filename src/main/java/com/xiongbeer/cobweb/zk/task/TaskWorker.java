@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk.task;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 
@@ -114,7 +114,7 @@ public class TaskWorker extends Task {
     public boolean sync() {
         boolean res = true;
         try {
-            client.sync().forPath(ZnodeInfo.ROOT_PATH);
+            client.sync().forPath(ZNodeStaticSetting.ROOT_PATH);
         } catch (Exception e) {
             res = false;
             logger.error("synchorized local view failed", e);

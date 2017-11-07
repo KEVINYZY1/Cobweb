@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk.task;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.utils.Async;
 import com.xiongbeer.cobweb.zk.AsyncOpThreadPool;
 import org.apache.curator.framework.CuratorFramework;
@@ -110,7 +110,7 @@ public class TaskManager extends Task {
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .inBackground(submitTaskCallback, asyncOpThreadPool)
-                    .forPath(ZnodeInfo.NEW_TASK_PATH + name, taskData.getBytes());
+                    .forPath(ZNodeStaticSetting.NEW_TASK_PATH + name, taskData.getBytes());
         } catch (Exception e) {
             logger.error("unknow error", e);
         }

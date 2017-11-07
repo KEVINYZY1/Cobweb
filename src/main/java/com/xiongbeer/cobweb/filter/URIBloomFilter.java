@@ -2,7 +2,7 @@ package com.xiongbeer.cobweb.filter;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.StaticField;
 import com.xiongbeer.cobweb.utils.MD5Maker;
 
 import java.io.File;
@@ -19,8 +19,6 @@ import java.util.regex.Pattern;
  * Created by shaoxiong on 17-5-10.
  */
 public class URIBloomFilter implements Filter {
-    private static Configuration configuration = Configuration.INSTANCE;
-
     private BloomFilter<CharSequence> bloomFilter;
 
     private AtomicLong urlCounter;
@@ -97,7 +95,7 @@ public class URIBloomFilter implements Filter {
             @Override
             public boolean accept(File pathname) {
                 if (pathname.toString().endsWith(
-                        configuration.BLOOM_CACHE_FILE_SUFFIX)) {
+                        StaticField.BLOOM_CACHE_FILE_SUFFIX)) {
                     return true;
                 }
                 return false;
@@ -166,7 +164,7 @@ public class URIBloomFilter implements Filter {
                 urlCounter.longValue(),
                 expectedInsertions, fpp);
         String newName = targetDir + File.separator + info.toString()
-                + configuration.TEMP_SUFFIX;
+                + StaticField.TEMP_SUFFIX;
         File file = new File(newName);
         FileOutputStream fos = new FileOutputStream(file);
         bloomFilter.writeTo(fos);

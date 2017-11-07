@@ -3,7 +3,7 @@ package com.xiongbeer.cobweb.zk.manager;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import com.xiongbeer.cobweb.Configuration;
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.exception.VeinsException;
 import com.xiongbeer.cobweb.filter.Filter;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
@@ -190,7 +190,7 @@ public class Manager {
         @Override
         public void process(WatchedEvent watchedEvent) {
             if (watchedEvent.getType() == Event.EventType.NodeDeleted) {
-                assert ZnodeInfo.ACTIVE_MANAGER_PATH.equals(watchedEvent.getPath());
+                assert ZNodeStaticSetting.ACTIVE_MANAGER_PATH.equals(watchedEvent.getPath());
                 logger.warn("Active manager deleted, now trying to activate manager again. by server."
                         + serverId + " ...");
                 recoverActiveManager();
@@ -236,7 +236,7 @@ public class Manager {
                         break;
                     case OK:
                         status = Status.ELECTED;
-                        managerPath = ZnodeInfo.ACTIVE_MANAGER_PATH;
+                        managerPath = ZNodeStaticSetting.ACTIVE_MANAGER_PATH;
                         logger.info("Recover active manager success. now server." + serverId
                                 + " is active manager.");
                         activeManagerExists();
@@ -277,14 +277,14 @@ public class Manager {
                     CuratorOp createOp = client.transactionOp()
                             .create()
                             .withMode(CreateMode.EPHEMERAL)
-                            .forPath(ZnodeInfo.ACTIVE_MANAGER_PATH);
+                            .forPath(ZNodeStaticSetting.ACTIVE_MANAGER_PATH);
                     client.transaction()
                             .inBackground(recoverMultiCallback, asyncOpThreadPool)
                             .forOperations(deleteOp, createOp);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }, ZnodeInfo.JITTER_DELAY, TimeUnit.SECONDS);
+            }, ZNodeStaticSetting.JITTER_DELAY, TimeUnit.SECONDS);
         } else {
             toBeActive();
         }
@@ -322,7 +322,7 @@ public class Manager {
             client.checkExists()
                     .usingWatcher(watcher)
                     .inBackground(actManagerExistsCallback, asyncOpThreadPool)
-                    .forPath(ZnodeInfo.ACTIVE_MANAGER_PATH);
+                    .forPath(ZNodeStaticSetting.ACTIVE_MANAGER_PATH);
         } catch (Exception e) {
             logger.warn("Unknow error.", e);
         }
@@ -405,7 +405,7 @@ public class Manager {
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL)
                     .inBackground(actManagerCreateCallback, asyncOpThreadPool)
-                    .forPath(ZnodeInfo.ACTIVE_MANAGER_PATH);
+                    .forPath(ZNodeStaticSetting.ACTIVE_MANAGER_PATH);
         } catch (Exception e) {
             logger.warn("unknow error.", e);
         }
@@ -446,7 +446,7 @@ public class Manager {
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL)
                     .inBackground(stdManagerCreateCallback, asyncOpThreadPool)
-                    .forPath(ZnodeInfo.STANDBY_MANAGER_PATH + serverId);
+                    .forPath(ZNodeStaticSetting.STANDBY_MANAGER_PATH + serverId);
         } catch (Exception e) {
             logger.warn("unknow error.", e);
         }
@@ -478,7 +478,7 @@ public class Manager {
         try {
             client.getData()
                     .inBackground(actCheckCallback, asyncOpThreadPool)
-                    .forPath(ZnodeInfo.ACTIVE_MANAGER_PATH);
+                    .forPath(ZNodeStaticSetting.ACTIVE_MANAGER_PATH);
         } catch (Exception e) {
             logger.warn("unknow error.", e);
         }
@@ -507,7 +507,7 @@ public class Manager {
                     }
                     dfsManager.move(configuration.WAITING_TASKS_URLS + "/" + key,
                             configuration.FINISHED_TASKS_URLS + "/" + key);
-                    taskManager.releaseTask(ZnodeInfo.TASKS_PATH + '/' + key);
+                    taskManager.releaseTask(ZNodeStaticSetting.TASKS_PATH + '/' + key);
                     break;
                 case RUNNING:
                     unfinishedTaskMap.put(key, value);
@@ -550,7 +550,7 @@ public class Manager {
                 })
                 .forEach(entry -> {
                     String name = entry.getKey();
-                    taskManager.resetTask(ZnodeInfo.TASKS_PATH + "/" + name);
+                    taskManager.resetTask(ZNodeStaticSetting.TASKS_PATH + "/" + name);
                     logger.warn("The owner of task: " + name + " has dead, now reset it...");
                 });
     }

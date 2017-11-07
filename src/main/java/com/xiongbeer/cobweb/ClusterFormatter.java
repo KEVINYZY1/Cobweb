@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.saver.dfs.HDFSManager;
 import com.xiongbeer.cobweb.utils.Color;
 import com.xiongbeer.cobweb.utils.InitLogger;
@@ -36,9 +36,9 @@ public class ClusterFormatter implements Watcher {
      */
     public void initZK() throws KeeperException, InterruptedException {
         try {
-            createParent(ZnodeInfo.WORKERS_PATH);
-            createParent(ZnodeInfo.MANAGERS_PATH);
-            createParent(ZnodeInfo.TASKS_PATH);
+            createParent(ZNodeStaticSetting.WORKERS_PATH);
+            createParent(ZNodeStaticSetting.MANAGERS_PATH);
+            createParent(ZNodeStaticSetting.TASKS_PATH);
         } catch (KeeperException.NodeExistsException e) {
             //pass
         }
@@ -67,9 +67,9 @@ public class ClusterFormatter implements Watcher {
      * 强制初始化ZooKeeper(会清除原来存在的节点)
      */
     public void formatZK() throws KeeperException, InterruptedException {
-        deleteParent(ZnodeInfo.WORKERS_PATH);
-        deleteParent(ZnodeInfo.MANAGERS_PATH);
-        deleteParent(ZnodeInfo.TASKS_PATH);
+        deleteParent(ZNodeStaticSetting.WORKERS_PATH);
+        deleteParent(ZNodeStaticSetting.MANAGERS_PATH);
+        deleteParent(ZNodeStaticSetting.TASKS_PATH);
         initZK();
     }
 

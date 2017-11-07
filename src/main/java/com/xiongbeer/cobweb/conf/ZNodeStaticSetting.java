@@ -3,7 +3,9 @@ package com.xiongbeer.cobweb.conf;
 /**
  * Created by shaoxiong on 17-4-6.
  */
-public class ZnodeInfo {
+public class ZNodeStaticSetting {
+    public static final String PATH_SEPARATOR = "/";
+
     public static final String ROOT_PATH = "/cobweb";
 
     public static final String WORKERS_PATH = "/wvWorkers";
@@ -11,6 +13,8 @@ public class ZnodeInfo {
     public static final String TASKS_PATH = "/wvTasks";
 
     public static final String MANAGERS_PATH = "/wvManagers";
+
+    public static final String FILTERS_ROOT = "/wvFilters";
 
     public static final String NEW_WORKER_PATH = WORKERS_PATH + "/worker_";
 

@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk.worker;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.exception.VeinsException;
 import com.xiongbeer.cobweb.zk.task.Epoch;
 import com.xiongbeer.cobweb.zk.task.TaskData;
@@ -83,7 +83,7 @@ public class Worker {
     }
 
     public boolean beat(String taskName, TaskData taskData) {
-        boolean res = taskWorker.setRunningTask(ZnodeInfo.TASKS_PATH + '/' + taskName, -1, taskData);
+        boolean res = taskWorker.setRunningTask(ZNodeStaticSetting.TASKS_PATH + '/' + taskName, -1, taskData);
         setStatus(taskName);
         return res;
     }
@@ -103,7 +103,7 @@ public class Worker {
             workerPath = client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL)
-                    .forPath(ZnodeInfo.NEW_WORKER_PATH + serverId, serverId.getBytes());
+                    .forPath(ZNodeStaticSetting.NEW_WORKER_PATH + serverId, serverId.getBytes());
         } catch (KeeperException.ConnectionLossException e) {
             signUpWorker();
         } catch (Exception e) {

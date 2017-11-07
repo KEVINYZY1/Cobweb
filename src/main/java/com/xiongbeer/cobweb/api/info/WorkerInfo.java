@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.api.info;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.api.SimpleInfo;
 import com.xiongbeer.cobweb.api.jsondata.JData;
 import com.xiongbeer.cobweb.api.jsondata.WorkerJson;
@@ -28,7 +28,7 @@ public class WorkerInfo implements SimpleInfo {
     public WorkerInfo getCurrentWoker() {
         List<String> children;
         try {
-            children = client.getChildren().forPath(ZnodeInfo.WORKERS_PATH);
+            children = client.getChildren().forPath(ZNodeStaticSetting.WORKERS_PATH);
             for (String child : children) {
                 WorkerJson data = new WorkerJson();
                 Stat stat = new Stat();
@@ -36,7 +36,7 @@ public class WorkerInfo implements SimpleInfo {
                 content =
                         client.getData()
                                 .storingStatIn(stat)
-                                .forPath(ZnodeInfo.WORKERS_PATH + '/' + child);
+                                .forPath(ZNodeStaticSetting.WORKERS_PATH + '/' + child);
                 data.setName(child);
                 /* 32为md5码长度 */
                 if (content.length == 32) {

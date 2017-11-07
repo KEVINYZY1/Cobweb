@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk.worker;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -36,7 +36,7 @@ public class WorkersWatcher implements Watcher {
             List<String> children =
                     client.getChildren()
                             .usingWatcher(this)
-                            .forPath(ZnodeInfo.WORKERS_PATH);
+                            .forPath(ZNodeStaticSetting.WORKERS_PATH);
             /* 首先检查上一次保存的worker中有没有消失的 */
             workersMap.entrySet().forEach(entry -> {
                 String workerName = entry.getKey();
@@ -65,7 +65,7 @@ public class WorkersWatcher implements Watcher {
     @Override
     public void process(WatchedEvent watchedEvent) {
         if (watchedEvent.getType() == Event.EventType.NodeChildrenChanged) {
-            assert ZnodeInfo.WORKERS_PATH.equals(watchedEvent.getPath());
+            assert ZNodeStaticSetting.WORKERS_PATH.equals(watchedEvent.getPath());
             refreshAliveWorkers();
         }
     }
@@ -73,7 +73,7 @@ public class WorkersWatcher implements Watcher {
     private void refreshWorkerStatus(String workerName) {
         try {
             byte[] data = client.getData()
-                    .forPath(ZnodeInfo.WORKERS_PATH + "/" + workerName);
+                    .forPath(ZNodeStaticSetting.WORKERS_PATH + "/" + workerName);
             workersMap.put(workerName, new String(data));
         } catch (KeeperException.ConnectionLossException e) {
             refreshWorkerStatus(workerName);

@@ -1,7 +1,7 @@
 package com.xiongbeer.cobweb.api.job;
 
 import com.xiongbeer.cobweb.Configuration;
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.api.SimpleJob;
 import com.xiongbeer.cobweb.exception.VeinsException;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
@@ -66,7 +66,7 @@ public class TaskJob implements SimpleJob {
     }
 
     public void removeFromZnode(String taskName) throws Exception {
-        client.delete().forPath(ZnodeInfo.TASKS_PATH + '/' + taskName);
+        client.delete().forPath(ZNodeStaticSetting.TASKS_PATH + '/' + taskName);
     }
 
     public void removeFromHDFS(String taskName)
@@ -75,7 +75,7 @@ public class TaskJob implements SimpleJob {
     }
 
     public List<String> getTasksName() throws Exception {
-        return client.getChildren().forPath(ZnodeInfo.TASKS_PATH);
+        return client.getChildren().forPath(ZNodeStaticSetting.TASKS_PATH);
     }
 
     @Override

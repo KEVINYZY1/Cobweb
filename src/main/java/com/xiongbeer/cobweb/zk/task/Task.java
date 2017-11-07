@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk.task;
 
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -60,9 +60,9 @@ public class Task {
     public void checkTasks() {
         try {
             client.getChildren()
-                    .forPath(ZnodeInfo.TASKS_PATH)
+                    .forPath(ZNodeStaticSetting.TASKS_PATH)
                     .forEach((task) -> {
-                        String taskPath = ZnodeInfo.NEW_TASK_PATH + task;
+                        String taskPath = ZNodeStaticSetting.NEW_TASK_PATH + task;
                         Optional<Epoch> info = Optional.ofNullable(checkTask(taskPath));
                         info.ifPresent(val -> tasksInfo.put(taskPath, val));
                     });

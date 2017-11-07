@@ -2,7 +2,7 @@ package com.xiongbeer.cobweb.service.protocol.handler;
 
 import com.google.protobuf.ByteString;
 import com.xiongbeer.cobweb.Configuration;
-import com.xiongbeer.cobweb.conf.ZnodeInfo;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.service.protocol.message.MessageType;
 import com.xiongbeer.cobweb.service.protocol.message.ProcessDataProto.ProcessData;
 import com.xiongbeer.cobweb.zk.task.Epoch;
@@ -67,7 +67,7 @@ public class WorkerProxyHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void process(ChannelHandlerContext ctx, ProcessData data){
-        String taskPath = ZnodeInfo.NEW_TASK_PATH + data.getUrlFileName();
+        String taskPath = ZNodeStaticSetting.NEW_TASK_PATH + data.getUrlFileName();
         ProcessData.CrawlerStatus status = data.getStatus();
         ProcessData.Builder builder = ProcessData.newBuilder();
         switch (status){
