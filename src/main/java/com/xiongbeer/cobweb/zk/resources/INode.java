@@ -15,7 +15,9 @@ public class INode implements INodeAttributes {
 
     private AtomicBoolean lock = new AtomicBoolean(false);
 
-    private String name;
+    private int name;
+
+    private String group;
 
     private long permission;
 
@@ -24,7 +26,16 @@ public class INode implements INodeAttributes {
     public INode(Instant createTime, Instant modificationTime, String group, int uniqueMarkup) {
         this.createTime = createTime;
         this.modificationTime = modificationTime;
-        this.name = Integer.toString(uniqueMarkup);
+        this.name = uniqueMarkup;
+        this.group = group;
+    }
+
+    public long getCreateTime() {
+        return createTime.toEpochMilli();
+    }
+
+    public long getLastModificationTime() {
+        return modificationTime.toEpochMilli();
     }
 
     @Override
@@ -53,12 +64,12 @@ public class INode implements INodeAttributes {
     }
 
     @Override
-    public String getMarkup() {
-        return null;
+    public int getMarkup() {
+        return name;
     }
 
     @Override
     public String getGroup() {
-        return null;
+        return group;
     }
 }

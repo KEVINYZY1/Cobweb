@@ -6,7 +6,7 @@ package com.xiongbeer.cobweb.conf;
 public class ZNodeStaticSetting {
     public static final String PATH_SEPARATOR = "/";
 
-    public static final String ROOT_PATH = "/cobweb";
+    public static final String ROOT_PATH = "/webveins";
 
     public static final String WORKERS_PATH = "/wvWorkers";
 

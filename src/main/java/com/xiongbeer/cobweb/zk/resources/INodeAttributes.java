@@ -14,7 +14,7 @@ public interface INodeAttributes {
 
     boolean isLocked();
 
-    String getMarkup();
+    int getMarkup();
 
     String getGroup();
 }

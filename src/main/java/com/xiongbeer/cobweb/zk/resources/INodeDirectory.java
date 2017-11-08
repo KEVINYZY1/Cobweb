@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * Created by shaoxiong on 17-11-5.
  */
+// TODO unfinished
 public class INodeDirectory implements INodeAttributes {
     private final Instant createTime;
 
@@ -17,10 +18,9 @@ public class INodeDirectory implements INodeAttributes {
 
     private List<INodeAttributes> children = null;
 
-    public INodeDirectory(Instant createTime, Instant modificationTime, String name) {
+    public INodeDirectory(Instant createTime, Instant modificationTime) {
         this.createTime = createTime;
         this.modificationTime = modificationTime;
-        this.name = name;
     }
 
     @Override
@@ -49,8 +49,8 @@ public class INodeDirectory implements INodeAttributes {
     }
 
     @Override
-    public String getMarkup() {
-        return null;
+    public int getMarkup() {
+        return 0;
     }
 
     @Override

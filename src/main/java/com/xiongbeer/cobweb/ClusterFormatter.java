@@ -39,8 +39,9 @@ public class ClusterFormatter implements Watcher {
             createParent(ZNodeStaticSetting.WORKERS_PATH);
             createParent(ZNodeStaticSetting.MANAGERS_PATH);
             createParent(ZNodeStaticSetting.TASKS_PATH);
+            createParent(ZNodeStaticSetting.FILTERS_ROOT);
         } catch (KeeperException.NodeExistsException e) {
-            //pass
+            // pass is ok
         }
     }
 
@@ -70,6 +71,7 @@ public class ClusterFormatter implements Watcher {
         deleteParent(ZNodeStaticSetting.WORKERS_PATH);
         deleteParent(ZNodeStaticSetting.MANAGERS_PATH);
         deleteParent(ZNodeStaticSetting.TASKS_PATH);
+        deleteParent(ZNodeStaticSetting.FILTERS_ROOT);
         initZK();
     }
 
@@ -137,11 +139,7 @@ public class ClusterFormatter implements Watcher {
                 formatter.initHDFS();
                 System.out.println("Done.");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (KeeperException e) {
+        } catch (IOException | InterruptedException | KeeperException e) {
             e.printStackTrace();
         }
     }

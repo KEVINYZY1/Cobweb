@@ -117,7 +117,7 @@ public class TaskWorker extends Task {
             client.sync().forPath(ZNodeStaticSetting.ROOT_PATH);
         } catch (Exception e) {
             res = false;
-            logger.error("synchorized local view failed", e);
+            logger.error("synchronized local view failed", e);
         }
         return res;
     }

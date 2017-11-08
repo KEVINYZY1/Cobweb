@@ -37,7 +37,7 @@ public class TaskManager extends Task {
                 String path = curatorEvent.getPath();
                 switch (Code.get(rc)) {
                     case CONNECTIONLOSS:
-                        submit(name);
+                        asyncSubmit(name);
                         break;
                     case OK:
                         logger.info("Submit task: " + path + " success.");
@@ -46,7 +46,7 @@ public class TaskManager extends Task {
                         // pass
                         break;
                     default:
-                        logger.error("Something went wrong when submit task.",
+                        logger.error("Something went wrong when asyncSubmit task.",
                                 KeeperException.create(Code.get(rc), path));
                         break;
                 }
@@ -58,7 +58,7 @@ public class TaskManager extends Task {
                 String path = curatorEvent.getPath();
                 switch (Code.get(rc)) {
                     case CONNECTIONLOSS:
-                        resetTask(path);
+                        asyncResetTask(path);
                         break;
                     case OK:
                         logger.info("Task: " + path + " has been reset.");
@@ -79,7 +79,7 @@ public class TaskManager extends Task {
                 String path = curatorEvent.getPath();
                 switch (Code.get(rc)) {
                     case CONNECTIONLOSS:
-                        releaseTask(path);
+                        asyncReleaseTask(path);
                         break;
                     case OK:
                         String dataUrl = new File(path).getName();
@@ -102,7 +102,7 @@ public class TaskManager extends Task {
      *
      * @param name
      */
-    public void submit(String name) {
+    public void asyncSubmit(String name) {
         try {
             TaskData taskData = new TaskData();
             taskData.setStatus(Status.WAITING);
@@ -124,7 +124,7 @@ public class TaskManager extends Task {
      *
      * @param path
      */
-    public void resetTask(String path) {
+    public void asyncResetTask(String path) {
         try {
             Stat stat = new Stat();
             byte[] data = client.getData()
@@ -148,7 +148,7 @@ public class TaskManager extends Task {
      * @param path
      */
     @Async
-    public void releaseTask(String path) {
+    public void asyncReleaseTask(String path) {
         try {
             client.delete()
                     .inBackground(releaseTaskCallback, asyncOpThreadPool)

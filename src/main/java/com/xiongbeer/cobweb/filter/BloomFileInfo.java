@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.filter;
 
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.StaticField;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -18,8 +18,6 @@ public class BloomFileInfo {
     public static final String INFIX = "#";
 
     public static final String SUFFIX = "_#";
-
-    private static Configuration configuration = Configuration.INSTANCE;
 
     private Long urlCounter;
 
@@ -118,11 +116,11 @@ public class BloomFileInfo {
     @Override
     public String toString() {
         DecimalFormat df = new DecimalFormat("0.###############");
-        return configuration.BLOOM_CACHE_FILE_PREFIX
+        return StaticField.BLOOM_CACHE_FILE_PREFIX
                 + PREFIX + urlCounter
                 + INFIX + expectedInsertions
                 + INFIX + df.format(fpp.doubleValue()) + SUFFIX
-                + configuration.BLOOM_CACHE_FILE_SUFFIX;
+                + StaticField.BLOOM_CACHE_FILE_SUFFIX;
     }
 
     public Long getUrlCounter() {

@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Optional;
 
 /**
  * Created by shaoxiong on 17-5-6.
@@ -72,11 +71,12 @@ public class SelfTest {
             client.checkExists().forPath(ZNodeStaticSetting.TASKS_PATH);
             client.checkExists().forPath(ZNodeStaticSetting.MANAGERS_PATH);
             client.checkExists().forPath(ZNodeStaticSetting.WORKERS_PATH);
+            client.checkExists().forPath(ZNodeStaticSetting.FILTERS_ROOT);
         } catch (Throwable e) {
             client = null;
             logger.error(e.getMessage());
         }
-        return Optional.of(client).get();
+        return client;
     }
 
     /**
@@ -96,6 +96,6 @@ public class SelfTest {
             hdfsManager = null;
             logger.error(e.getMessage());
         }
-        return Optional.of(hdfsManager).get();
+        return hdfsManager;
     }
 }

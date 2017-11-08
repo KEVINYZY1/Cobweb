@@ -112,7 +112,7 @@ public enum Configuration {
     Configuration() {
         /* 获取环境变量 */
         String HADOOP_HOME_PATH = System.getenv("HADOOP_HOME");
-        HOME_PATH = System.getenv("WEBVEINS_HOME");
+        HOME_PATH = System.getenv("COBWEB_HOME");
         if (!HADOOP_HOME_PATH.endsWith(File.separator)) {
             HADOOP_HOME_PATH += File.separator;
         }

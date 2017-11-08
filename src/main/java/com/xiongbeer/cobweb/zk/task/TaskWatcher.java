@@ -44,5 +44,4 @@ public class TaskWatcher {
             logger.warn("some thing get wrong when waiting for task.", e);
         }
     }
-
 }

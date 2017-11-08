@@ -507,7 +507,7 @@ public class Manager {
                     }
                     dfsManager.move(configuration.WAITING_TASKS_URLS + "/" + key,
                             configuration.FINISHED_TASKS_URLS + "/" + key);
-                    taskManager.releaseTask(ZNodeStaticSetting.TASKS_PATH + '/' + key);
+                    taskManager.asyncReleaseTask(ZNodeStaticSetting.TASKS_PATH + '/' + key);
                     break;
                 case RUNNING:
                     unfinishedTaskMap.put(key, value);
@@ -531,7 +531,7 @@ public class Manager {
         dfsManager.listFiles(configuration.WAITING_TASKS_URLS, false)
                 .stream()
                 .map(Files::getNameWithoutExtension)
-                .forEach(fileName -> taskManager.submit(fileName));
+                .forEach(fileName -> taskManager.asyncSubmit(fileName));
     }
 
     /**
@@ -550,7 +550,7 @@ public class Manager {
                 })
                 .forEach(entry -> {
                     String name = entry.getKey();
-                    taskManager.resetTask(ZNodeStaticSetting.TASKS_PATH + "/" + name);
+                    taskManager.asyncResetTask(ZNodeStaticSetting.TASKS_PATH + "/" + name);
                     logger.warn("The owner of task: " + name + " has dead, now reset it...");
                 });
     }
@@ -665,7 +665,7 @@ public class Manager {
                     dfsManager.uploadFile(filePath,
                             configuration.WAITING_TASKS_URLS + '/' + file.getName());
                 }
-                taskManager.submit(file.getName());
+                taskManager.asyncSubmit(file.getName());
             }
         }
     }
