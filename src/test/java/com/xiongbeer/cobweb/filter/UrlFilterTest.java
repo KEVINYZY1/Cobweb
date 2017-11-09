@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.filter;
 
-import com.xiongbeer.cobweb.exception.VeinsException;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import org.junit.Test;
 
 import java.io.*;
@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 public class UrlFilterTest {
 
     @Test
-    public void addAndExistTest() throws VeinsException.FilterOverflowException {
+    public void addAndExistTest() throws CobwebRuntimeException.FilterOverflowException {
         String url1 = "baidu.com";
         String url2 = "zhihu.com";
         URIBloomFilter filter = new URIBloomFilter(1000000L, 1.0 / 1000000D);
@@ -23,7 +23,7 @@ public class UrlFilterTest {
     }
 
     @Test
-    public void falseRateTest() throws VeinsException.FilterOverflowException, IOException {
+    public void falseRateTest() throws CobwebRuntimeException.FilterOverflowException, IOException {
         long testNum = 100000L;
         double fpp = 1.0D / testNum;
         int times = 2;

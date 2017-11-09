@@ -1,6 +1,7 @@
 package com.xiongbeer.cobweb.zk.resources;
 
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
+import com.xiongbeer.cobweb.filter.URIBloomFilter;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -31,6 +32,7 @@ public enum FilterINodesManagePool {
 
     public void init(CuratorFramework client) {
         this.client = client;
+        logger.info("loading filters node info...");
         loadExistNodes();
     }
 
@@ -52,14 +54,18 @@ public enum FilterINodesManagePool {
                     nodesPool.put(markup, inode);
                 }
             }
+        } catch (KeeperException.ConnectionLossException e) {
+            logger.warn("retrying : loadExistNodes");
+            loadExistNodes();
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
     }
 
-    public boolean createNewBloomFilter(String group, int uniqueMarkup) {
+    public boolean createNewBloomFilter(long expectedInsertions, double fpp, String group, int uniqueMarkup) {
         boolean res = false;
         try {
+            URIBloomFilter bloomFilter = new URIBloomFilter(expectedInsertions, fpp);
             client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
@@ -67,8 +73,6 @@ public enum FilterINodesManagePool {
             FilterINode newNode = new FilterINode(Instant.now(), Instant.now(), group, uniqueMarkup);
             nodesPool.put(uniqueMarkup, newNode);
             res = true;
-        } catch (KeeperException.ConnectionLossException e) {
-            createNewBloomFilter(group, uniqueMarkup);
         } catch (Exception e) {
             logger.error("create a new filter failed. ", e.getMessage());
         }

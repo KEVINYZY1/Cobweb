@@ -3,7 +3,7 @@ package com.xiongbeer.cobweb.api.job;
 import com.xiongbeer.cobweb.Configuration;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.api.SimpleJob;
-import com.xiongbeer.cobweb.exception.VeinsException;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
@@ -53,14 +53,14 @@ public class TaskJob implements SimpleJob {
             }
             builder.append("[info] total " + counter + " items" + separator);
         } catch (KeeperException.ConnectionLossException e) {
-            throw new VeinsException.OperationFailedException("[Error] Connection loss" +
+            throw new CobwebRuntimeException.OperationFailedException("[Error] Connection loss" +
                     ", you may have to wait for a while.");
         } catch (KeeperException.AuthFailedException e) {
-            throw new VeinsException.OperationFailedException("[Error] Authentication failed.");
+            throw new CobwebRuntimeException.OperationFailedException("[Error] Authentication failed.");
         } catch (KeeperException.NoAuthException e) {
-            throw new VeinsException.OperationFailedException("[Error] Permission denied.");
+            throw new CobwebRuntimeException.OperationFailedException("[Error] Permission denied.");
         } catch (Exception e) {
-            throw new VeinsException.OperationFailedException("Unknow error. " + e.getMessage());
+            throw new CobwebRuntimeException.OperationFailedException("Unknow error. " + e.getMessage());
         }
         return builder.toString();
     }

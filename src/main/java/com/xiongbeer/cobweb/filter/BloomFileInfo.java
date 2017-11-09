@@ -1,6 +1,7 @@
 package com.xiongbeer.cobweb.filter;
 
 import com.xiongbeer.cobweb.conf.StaticField;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -13,11 +14,10 @@ import java.util.regex.Pattern;
  * Created by shaoxiong on 17-5-11.
  */
 public class BloomFileInfo {
-    public static final String PREFIX = "#_";
-
-    public static final String INFIX = "#";
-
-    public static final String SUFFIX = "_#";
+    /**
+     * 命名格式： filePrefix#markup[1]#exp[2]#fpp[3]#urlCounter[4]#.fileSuffix
+     */
+    public static final String SEPARATOR = "#";
 
     private Long urlCounter;
 
@@ -25,20 +25,39 @@ public class BloomFileInfo {
 
     private Double fpp;
 
-    public BloomFileInfo() {
-    }
+    private int markup;
 
     public BloomFileInfo(String bloomFileName) throws IOException {
-        urlCounter = getUrlCounter(bloomFileName);
-        expectedInsertions = getExpectedInsertions(bloomFileName);
-        fpp = getFpp(bloomFileName);
+        if(!(bloomFileName.startsWith(StaticField.BLOOM_CACHE_FILE_PREFIX)
+                && bloomFileName.endsWith(StaticField.BLOOM_CACHE_FILE_SUFFIX))) {
+            throw new CobwebRuntimeException.IllegalFilterCacheNameException(bloomFileName);
+        }
+        loadInfo(bloomFileName);
     }
 
-    public BloomFileInfo(long urlCounter
-            , long expectedInsertions, double fpp) {
+    public BloomFileInfo(long urlCounter, long expectedInsertions, double fpp) {
+        this.markup = StaticField.DEFAULT_FILTER_MARKUP;
         this.urlCounter = urlCounter;
         this.expectedInsertions = expectedInsertions;
         this.fpp = fpp;
+    }
+
+    public BloomFileInfo(int markup, long urlCounter, long expectedInsertions, double fpp) {
+        this.markup = markup;
+        this.urlCounter = urlCounter;
+        this.expectedInsertions = expectedInsertions;
+        this.fpp = fpp;
+    }
+
+    public void loadInfo(String bloomFileName) {
+        String[] foo = bloomFileName.split(SEPARATOR);
+        if(foo.length != 6) {
+            throw new CobwebRuntimeException.IllegalFilterCacheNameException(bloomFileName);
+        }
+        markup = Integer.parseInt(foo[1]);
+        expectedInsertions = Long.parseLong(foo[2]);
+        fpp = Double.parseDouble(foo[3]);
+        urlCounter = Long.parseLong(foo[4]);
     }
 
     /**
@@ -47,6 +66,7 @@ public class BloomFileInfo {
      *
      * @param bloomFileName bloom缓存文件的名字
      */
+    @Deprecated
     private Long getUrlCounter(String bloomFileName) throws IOException {
         Long value = null;
         Pattern pattern = Pattern.compile("(?<=\\#_)\\d*(?=\\#)");
@@ -68,6 +88,7 @@ public class BloomFileInfo {
      *
      * @param bloomFileName bloom缓存文件的名字
      */
+    @Deprecated
     private Long getExpectedInsertions(String bloomFileName) throws IOException {
         Long value = null;
         Pattern pattern = Pattern.compile("(?<=\\#)\\d*(?=\\#)");
@@ -89,6 +110,7 @@ public class BloomFileInfo {
      *
      * @param bloomFileName bloom缓存文件的名字
      */
+    @Deprecated
     private Double getFpp(String bloomFileName) throws IOException {
         Double value = null;
         Pattern pattern = Pattern.compile("(?<=\\#)0{1}\\.{1}\\d*(?=_\\#)");
@@ -107,6 +129,7 @@ public class BloomFileInfo {
     /**
      * bloom缓存文件名中包含了必要信息
      * <p>
+     * markup： 独立标识
      * urlCounter： 目前已经存入的URL的数量
      * expectedInsertions：最大容量
      * fpp： 误报概率
@@ -117,10 +140,11 @@ public class BloomFileInfo {
     public String toString() {
         DecimalFormat df = new DecimalFormat("0.###############");
         return StaticField.BLOOM_CACHE_FILE_PREFIX
-                + PREFIX + urlCounter
-                + INFIX + expectedInsertions
-                + INFIX + df.format(fpp.doubleValue()) + SUFFIX
-                + StaticField.BLOOM_CACHE_FILE_SUFFIX;
+                + SEPARATOR + markup
+                + SEPARATOR + urlCounter
+                + SEPARATOR + expectedInsertions
+                + SEPARATOR + df.format(fpp.doubleValue())
+                + SEPARATOR + StaticField.BLOOM_CACHE_FILE_SUFFIX;
     }
 
     public Long getUrlCounter() {
@@ -135,24 +159,11 @@ public class BloomFileInfo {
         return expectedInsertions;
     }
 
-    public void setExpectedInsertions(Long expectedInsertions) {
-        this.expectedInsertions = expectedInsertions;
-    }
-
     public Double getFpp() {
         return fpp;
     }
 
-    public void setFpp(Double fpp) {
-        this.fpp = fpp;
-    }
-
-    /**
-     * TODO
-     *
-     * @return
-     */
-    public String getUniqueID() {
-        return "NULL";
+    public int getMarkup() {
+        return markup;
     }
 }

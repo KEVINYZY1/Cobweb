@@ -2,7 +2,7 @@ package com.xiongbeer.cobweb.api.job;
 
 import com.xiongbeer.cobweb.Configuration;
 import com.xiongbeer.cobweb.api.SimpleJob;
-import com.xiongbeer.cobweb.exception.VeinsException;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class DFSJob implements SimpleJob {
                 dfsManager.delete(file, false);
             }
         } catch (IOException e) {
-            throw new VeinsException.OperationFailedException(e.getMessage());
+            throw new CobwebRuntimeException.OperationFailedException(e.getMessage());
         }
     }
 

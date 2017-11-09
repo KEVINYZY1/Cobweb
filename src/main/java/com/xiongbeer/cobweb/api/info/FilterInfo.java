@@ -33,7 +33,7 @@ public class FilterInfo implements SimpleInfo {
             try {
                 data.setSize(dfsManager.getFileLen(path));
                 data.setMtime(dfsManager.getFileModificationTime(path));
-                data.setUniqueID(bloomFile.getUniqueID());
+                data.setUniqueID(Integer.toString(bloomFile.getMarkup()));
                 data.setFpp(bloomFile.getFpp());
                 data.setMaxCapacity(bloomFile.getExpectedInsertions());
                 data.setUrlsNum(bloomFile.getUrlCounter());

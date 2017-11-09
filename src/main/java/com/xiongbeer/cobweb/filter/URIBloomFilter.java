@@ -50,6 +50,7 @@ public class URIBloomFilter implements Filter {
      * @param cacheDir 存取缓存文件的文件夹路径
      * @throws IOException
      */
+    @Deprecated
     public URIBloomFilter(String cacheDir) throws IOException {
         File dir = new File(cacheDir);
         File file = new File(getBloomFileName(dir));

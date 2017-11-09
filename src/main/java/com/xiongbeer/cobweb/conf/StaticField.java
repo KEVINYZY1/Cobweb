@@ -11,4 +11,6 @@ public class StaticField {
     public static final String BLOOM_CACHE_FILE_PREFIX = "bloom_cache";
 
     public static final String BLOOM_CACHE_FILE_SUFFIX = ".dat";
+
+    public static final int DEFAULT_FILTER_MARKUP = 0;
 }

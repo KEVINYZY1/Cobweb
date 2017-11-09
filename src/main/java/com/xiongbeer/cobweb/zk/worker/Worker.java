@@ -1,7 +1,7 @@
 package com.xiongbeer.cobweb.zk.worker;
 
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
-import com.xiongbeer.cobweb.exception.VeinsException;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.zk.task.Epoch;
 import com.xiongbeer.cobweb.zk.task.TaskData;
 import com.xiongbeer.cobweb.zk.task.TaskWatcher;
@@ -107,7 +107,7 @@ public class Worker {
         } catch (KeeperException.ConnectionLossException e) {
             signUpWorker();
         } catch (Exception e) {
-            throw new VeinsException.OperationFailedException("\nfailed to sign up worker. " + e.getMessage());
+            throw new CobwebRuntimeException.OperationFailedException("\nfailed to sign up worker. " + e.getMessage());
         }
     }
 }

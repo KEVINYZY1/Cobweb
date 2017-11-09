@@ -96,6 +96,6 @@ public class SelfTest {
             hdfsManager = null;
             logger.error(e.getMessage());
         }
-        return hdfsManager;
+        return hdfsManager ;
     }
 }

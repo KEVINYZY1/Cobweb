@@ -4,7 +4,7 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import com.xiongbeer.cobweb.Configuration;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
-import com.xiongbeer.cobweb.exception.VeinsException;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.filter.Filter;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.utils.Async;
@@ -153,10 +153,10 @@ public class Manager {
      *
      * @throws InterruptedException
      * @throws IOException
-     * @throws VeinsException.FilterOverflowException bloomFilter的容量已满
+     * @throws CobwebRuntimeException.FilterOverflowException bloomFilter的容量已满
      */
     public void manage() throws InterruptedException
-            , IOException, VeinsException.FilterOverflowException {
+            , IOException, CobwebRuntimeException.FilterOverflowException {
         if (status == Status.ELECTED) {
             logger.debug("start manage process...");
             checkTasks();
@@ -558,7 +558,7 @@ public class Manager {
     /**
      * 发布新的任务
      */
-    private void publishNewTasks() throws IOException, VeinsException.FilterOverflowException {
+    private void publishNewTasks() throws IOException, CobwebRuntimeException.FilterOverflowException {
         String tempSavePath = configuration.BLOOM_TEMP_DIR;
         List<String> hdfsUrlFiles = dfsManager.listFiles(
                 configuration.NEW_TASKS_URLS, false);

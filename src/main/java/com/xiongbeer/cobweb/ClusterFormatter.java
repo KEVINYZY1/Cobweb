@@ -9,6 +9,8 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -19,6 +21,8 @@ import static org.apache.zookeeper.ZooDefs.Ids.OPEN_ACL_UNSAFE;
  */
 public class ClusterFormatter implements Watcher {
     private static ClusterFormatter clusterFormatter;
+
+    private static Logger logger = LoggerFactory.getLogger(ClusterFormatter.class);
 
     private static Configuration configuration = Configuration.INSTANCE;
 
@@ -113,7 +117,7 @@ public class ClusterFormatter implements Watcher {
             hdfsManager = new HDFSManager(configuration.HDFS_SYSTEM_CONF
                     , configuration.HDFS_SYSTEM_PATH);
         } catch (Throwable e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             System.exit(1);
         }
     }
@@ -123,6 +127,7 @@ public class ClusterFormatter implements Watcher {
         try {
             ClusterFormatter formatter = ClusterFormatter.getInstance();
             if (args.length > 0 && args[0].equals("-f")) {
+
                 System.out.println(Color.error("delete all old setting and  initialize?(y/n)"));
                 char choice = (char) System.in.read();
                 if (choice == 'y' || choice == 'Y') {

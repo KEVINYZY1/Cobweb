@@ -4,7 +4,7 @@ import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.api.SimpleInfo;
 import com.xiongbeer.cobweb.api.jsondata.JData;
 import com.xiongbeer.cobweb.api.jsondata.TaskJson;
-import com.xiongbeer.cobweb.exception.VeinsException.OperationFailedException;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException.OperationFailedException;
 
 import com.xiongbeer.cobweb.zk.task.TaskData;
 import org.apache.curator.framework.CuratorFramework;
