@@ -23,16 +23,6 @@ public abstract class CobwebRuntimeException extends RuntimeException {
         }
     }
 
-    public static class IllegalFilterCacheNameException extends CobwebRuntimeException {
-
-        public IllegalFilterCacheNameException() {
-        }
-
-        public IllegalFilterCacheNameException(String message) {
-            super(message);
-        }
-    }
-
     public static class OperationFailedException extends CobwebRuntimeException {
 
         public OperationFailedException() {

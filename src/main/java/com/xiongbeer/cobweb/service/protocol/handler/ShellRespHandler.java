@@ -9,6 +9,7 @@ import com.xiongbeer.cobweb.api.info.WorkerInfo;
 import com.xiongbeer.cobweb.api.job.DFSJob;
 import com.xiongbeer.cobweb.api.job.TaskJob;
 import com.xiongbeer.cobweb.api.jsondata.JData;
+import com.xiongbeer.cobweb.exception.FilterException;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.service.protocol.message.MessageType;
 import com.xiongbeer.cobweb.service.protocol.message.ProcessDataProto.ProcessData;
@@ -93,6 +94,8 @@ public class ShellRespHandler extends ChannelInboundHandlerAdapter {
                             .getBloomCacheInfo(configuration.BLOOM_BACKUP_PATH)
                             .getInfo();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (FilterException.IllegalFilterCacheNameException e) {
                     e.printStackTrace();
                 }
                 result = JDecoder(dataSet);

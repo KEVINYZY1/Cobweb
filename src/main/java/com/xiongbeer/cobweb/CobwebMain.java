@@ -60,6 +60,7 @@ public enum CobwebMain {
             } catch (InterruptedException e) {
                 logger.info("shut down.");
             } catch (Throwable e) {
+                /* TODO 还在考虑哪些需要 let it crash */
                 logger.warn("something wrong when managing: ", e);
             }
         }, 0, configuration.CHECK_TIME, TimeUnit.SECONDS);

@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.service.protocol;
 
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.service.local.Action;
 import com.xiongbeer.cobweb.service.protocol.handler.HeartBeatReqHandler;
 import com.xiongbeer.cobweb.service.protocol.handler.LocalCrawlerHandler;
@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Client {
     private final static Logger logger = LoggerFactory.getLogger(Client.class);
     private static Configuration configuration = Configuration.INSTANCE;
-    private final String host = configuration.LOCAL_HOST;
-    private final int port = configuration.LOCAL_PORT;
+    private final String host = (String) configuration.get("local_host");
+    private final int port = (int) configuration.get("local_port");
     private final Action action;
     private AtomicBoolean closeLongConnection = new AtomicBoolean(false);
     private volatile boolean isLongConnection = false;

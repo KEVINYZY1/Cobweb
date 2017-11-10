@@ -1,5 +1,6 @@
 package com.xiongbeer.cobweb.zk.resources;
 
+import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.filter.URIBloomFilter;
 import org.apache.curator.framework.CuratorFramework;
@@ -32,7 +33,7 @@ public enum FilterINodesManagePool {
 
     public void init(CuratorFramework client) {
         this.client = client;
-        logger.info("loading filters node info...");
+        logger.info("loading filters' node information...");
         loadExistNodes();
     }
 
@@ -66,6 +67,7 @@ public enum FilterINodesManagePool {
         boolean res = false;
         try {
             URIBloomFilter bloomFilter = new URIBloomFilter(expectedInsertions, fpp);
+            bloomFilter.save((String) Configuration.INSTANCE.get(""));
             client.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)

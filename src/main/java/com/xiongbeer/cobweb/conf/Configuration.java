@@ -27,21 +27,28 @@ public enum Configuration {
 
     Configuration() {
         Optional<String> hadoopEnvPath = Optional.of(System.getenv("HADOOP_HOME"));
-        logger.info("load hadoop environment path : ", hadoopEnvPath.get());
+        logger.info("load hadoop environment path : " + hadoopEnvPath.get());
         Optional<String> defaultEnvPath = Optional.of(System.getenv("COBWEB_HOME"));
-        logger.info("load cobweb environment path : ", defaultEnvPath.get());
-
+        logger.info("load cobweb environment path : " + defaultEnvPath.get());
+        logger.info("loading default setting...");
+        init(defaultEnvPath.get());
         try {
+            logger.info("loading user setting...");
             loadConf(Paths.get(defaultEnvPath.get(), CONF_PATH.toString()).toString(), hadoopEnvPath.get());
         } catch (FileNotFoundException | YamlException e) {
-            logger.error("load configuration failed. ", e.getMessage());
+            logger.error("load configuration failed. ", e);
             System.exit(1);
         }
+        logger.info("load configuration success.");
+        System.out.println(properties);
+    }
+
+    public Object get(String setting) {
+        return properties.get(setting);
     }
 
     private void loadConf(String cobwebConfPath, String hadoopConfPath) throws FileNotFoundException, YamlException {
         YamlReader reader = new YamlReader(new FileReader(cobwebConfPath));
-        logger.info("loading static text setting...");
         while (true) {
             Map contact = (Map) reader.read();
             if (contact == null) {
@@ -53,6 +60,75 @@ public enum Configuration {
             Setting property = new Setting(value, name);
             properties.put(name, property);
         }
+    }
+
+    public void init(String cobwebConfPath) {
+        defaultLoad("bloom_save_path", cobwebConfPath + "/data/bloom");
+        defaultLoad("hdfs_root", "/cobweb");
+        String root = (String) properties.get("hdfs_root").getResource();
+        defaultLoad("waiting_tasks_urls", root + "/tasks/waitingtasks");
+        defaultLoad("finished_tasks_urls", root + "/tasks/finishedtasks");
+        defaultLoad("new_tasks_urls", root + "/tasks/newurls");
+        defaultLoad("new_tasks_urls", root + "/tasks/newurls");
+
+        /* bloom过滤器会定时备份，此为其存放的路径 */
+        defaultLoad("bloom_backup_path", root + "/bloom");
+
+
+        /* 临时文件（UrlFile）的存放的本地路径 */
+        defaultLoad("temp_dir", cobwebConfPath + "/data/temp");
+
+        /* Worker与ZooKeeper断开连接后，经过DEADTIME后认为Worker死亡 */
+        defaultLoad("worker_dead_time", 120);
+
+        /* Manager进行检查的间隔 */
+        defaultLoad("check_time", 45);
+
+        /* 本机ip Worker节点需要配置 */
+        defaultLoad("local_host", "127.0.0.1");
+
+        /* Worker服务使用的端口 Worker节点需要配置 */
+        defaultLoad("local_port", 22000);
+
+        /* 命令行API服务所使用的端口 */
+        defaultLoad("local_shell_port", 22001);
+
+        /* bloom过滤器过滤url文件的暂存位置 */
+        defaultLoad("bloom_temp_dir", cobwebConfPath + "/data/bloom/temp");
+
+        /* 均衡负载server端默认端口 */
+        defaultLoad("balance_server_port", 8081);
+
+        /* 每个任务包含的URL的最大数量 */
+        defaultLoad("task_urls_num", 200);
+
+        /* zookeeper的session过期时间 */
+        defaultLoad("zk_session_timeout", 40000);
+
+        /* zookeeper客户端初始化连接等待的最长时间 */
+        defaultLoad("zk_init_timeout", 10000);
+
+        /* zookeeper客户端断开后的重试次数 */
+        defaultLoad("zk_retry_times", 3);
+
+        /* zookeeper客户端重试时的时间间隔 */
+        defaultLoad("zk_retry_interval", 2000);
+
+        /* HDFS文件系统的nameservice路径 */
+        defaultLoad("hdfs_system_path", "");
+
+        /* worker接取任务后的心跳频率 */
+        defaultLoad("worker_heart_beat", 15);
+
+        /* tomcat服务器刷新数据的间隔 */
+        defaultLoad("tomcat_heart_beat", 5);
+
+        /* 异步执行的线程数量 */
+        defaultLoad("local_async_thread_num", Runtime.getRuntime().availableProcessors());
+    }
+
+    private void defaultLoad(String settingName, Object resource) {
+        properties.put(settingName, new Setting(resource, settingName));
     }
 
     private Object getValue(String textValue, String hadoopConfPath) {
@@ -67,6 +143,15 @@ public enum Configuration {
                     res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "yarn-site.xml").toString());
                 }
                 return res;
+            case "check_time":
+            case "task_urls_num":
+            case "zk_session_timeout":
+            case "tomcat_heart_beat":
+            case "worker_heart_beat":
+            case "local_port":
+            case "local_shell_port":
+            case "balance_server_port":
+                return Integer.parseInt(textValue);
             default:
                 return textValue;
         }
@@ -92,7 +177,7 @@ public enum Configuration {
 
         @Override
         public String toString() {
-            return name;
+            return "[" + name + " : " + resource + "]";
         }
     }
 }

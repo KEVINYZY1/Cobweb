@@ -3,6 +3,7 @@ package com.xiongbeer.cobweb;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
+import com.xiongbeer.cobweb.exception.FilterException.IllegalFilterCacheNameException;
 import com.xiongbeer.cobweb.filter.URIBloomFilter;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.saver.dfs.HDFSManager;
@@ -214,6 +215,8 @@ public enum Configuration {
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
+        } catch (IllegalFilterCacheNameException e) {
+            e.printStackTrace();
         }
         return URL_FILTER;
     }
@@ -226,7 +229,7 @@ public enum Configuration {
      * @param dir 缓存文件夹
      * @return
      */
-    public URIBloomFilter getUrlFilter(String dir) throws IOException {
+    public URIBloomFilter getUrlFilter(String dir) throws IOException, IllegalFilterCacheNameException {
         if (URL_FILTER == null) {
             URL_FILTER = new URIBloomFilter(dir);
         }

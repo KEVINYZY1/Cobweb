@@ -3,6 +3,7 @@ package com.xiongbeer.cobweb.api.info;
 import com.xiongbeer.cobweb.api.SimpleInfo;
 import com.xiongbeer.cobweb.api.jsondata.FilterJson;
 import com.xiongbeer.cobweb.api.jsondata.JData;
+import com.xiongbeer.cobweb.exception.FilterException.IllegalFilterCacheNameException;
 import com.xiongbeer.cobweb.filter.BloomFileInfo;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 
@@ -24,7 +25,7 @@ public class FilterInfo implements SimpleInfo {
         info = new LinkedList<>();
     }
 
-    public FilterInfo getBloomCacheInfo(String src) throws IOException {
+    public FilterInfo getBloomCacheInfo(String src) throws IOException, IllegalFilterCacheNameException {
         List<String> filesPath = dfsManager.listFiles(src, false);
         for (String path : filesPath) {
             File file = new File(path);

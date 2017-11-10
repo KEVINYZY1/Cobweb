@@ -1,7 +1,7 @@
 package com.xiongbeer.cobweb.filter;
 
 import com.xiongbeer.cobweb.conf.StaticField;
-import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
+import com.xiongbeer.cobweb.exception.FilterException;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -27,10 +27,10 @@ public class BloomFileInfo {
 
     private int markup;
 
-    public BloomFileInfo(String bloomFileName) throws IOException {
+    public BloomFileInfo(String bloomFileName) throws FilterException.IllegalFilterCacheNameException {
         if(!(bloomFileName.startsWith(StaticField.BLOOM_CACHE_FILE_PREFIX)
                 && bloomFileName.endsWith(StaticField.BLOOM_CACHE_FILE_SUFFIX))) {
-            throw new CobwebRuntimeException.IllegalFilterCacheNameException(bloomFileName);
+            throw new FilterException.IllegalFilterCacheNameException(bloomFileName);
         }
         loadInfo(bloomFileName);
     }
@@ -49,10 +49,10 @@ public class BloomFileInfo {
         this.fpp = fpp;
     }
 
-    public void loadInfo(String bloomFileName) {
+    public void loadInfo(String bloomFileName) throws FilterException.IllegalFilterCacheNameException, NumberFormatException {
         String[] foo = bloomFileName.split(SEPARATOR);
         if(foo.length != 6) {
-            throw new CobwebRuntimeException.IllegalFilterCacheNameException(bloomFileName);
+            throw new FilterException.IllegalFilterCacheNameException(bloomFileName);
         }
         markup = Integer.parseInt(foo[1]);
         expectedInsertions = Long.parseLong(foo[2]);

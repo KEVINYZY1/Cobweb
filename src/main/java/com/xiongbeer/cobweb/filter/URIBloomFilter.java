@@ -3,22 +3,24 @@ package com.xiongbeer.cobweb.filter;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.xiongbeer.cobweb.conf.StaticField;
+import com.xiongbeer.cobweb.exception.FilterException;
 import com.xiongbeer.cobweb.utils.MD5Maker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by shaoxiong on 17-5-10.
  */
 public class URIBloomFilter implements Filter {
+    private static final Logger logger = LoggerFactory.getLogger(URIBloomFilter.class);
+
     private BloomFilter<CharSequence> bloomFilter;
 
     private AtomicLong urlCounter;
@@ -51,7 +53,7 @@ public class URIBloomFilter implements Filter {
      * @throws IOException
      */
     @Deprecated
-    public URIBloomFilter(String cacheDir) throws IOException {
+    public URIBloomFilter(String cacheDir) throws IOException, FilterException.IllegalFilterCacheNameException {
         File dir = new File(cacheDir);
         File file = new File(getBloomFileName(dir));
         BloomFileInfo info = new BloomFileInfo(file.getName());
@@ -70,7 +72,8 @@ public class URIBloomFilter implements Filter {
      * @param uniqueMarkupRegex 能捕获包含唯一标识符的bloom缓存文件的正则表达式
      * @throws IOException
      */
-    public URIBloomFilter(String cacheDir, String uniqueMarkupRegex) throws IOException {
+    public URIBloomFilter(String cacheDir, int uniqueMarkupRegex)
+            throws IOException, FilterException {
         File dir = new File(cacheDir);
         String bloomFileName = getBloomFileName(dir, uniqueMarkupRegex);
         File file = new File(cacheDir + File.separator + bloomFileName);
@@ -91,16 +94,14 @@ public class URIBloomFilter implements Filter {
      * @throws IOException 当读取的路径下没有或者有多于一个
      *                     bloom缓存文件的时候就会抛出异常
      */
+    @Deprecated
     public static String getBloomFileName(File dir) throws IOException {
-        File[] files = dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                if (pathname.toString().endsWith(
-                        StaticField.BLOOM_CACHE_FILE_SUFFIX)) {
-                    return true;
-                }
-                return false;
+        File[] files = dir.listFiles(pathname -> {
+            if (pathname.toString().endsWith(
+                    StaticField.BLOOM_CACHE_FILE_SUFFIX)) {
+                return true;
             }
+            return false;
         });
         if (files.length == 0) {
             throw new IOException("No bloom cache file exist.");
@@ -121,23 +122,25 @@ public class URIBloomFilter implements Filter {
      * @throws IOException 没有获取到或者获取到多个本该是唯一
      *                     bloom缓存文件的时候就会抛出异常
      */
-    public static String getBloomFileName(File dir, final String uniqueMarkupRegex) throws IOException {
-        File[] files = dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                Pattern pattern = Pattern.compile(uniqueMarkupRegex);
-                Matcher matcher = pattern.matcher(pathname.toString());
-                while (matcher.find()) {
-                    return true;
-                }
+    public static String getBloomFileName(File dir, final int uniqueMarkupRegex) throws FilterException {
+        File[] files = dir.listFiles(pathname -> {
+            BloomFileInfo info;
+            try {
+                info = new BloomFileInfo(pathname.getName());
+            } catch (FilterException.IllegalFilterCacheNameException e) {
+                /* ignore illegal file is ok */
+                return false;
+            } catch (NumberFormatException e) {
+                logger.warn("A filter cache file might be broken : " + pathname);
                 return false;
             }
+            return info.getMarkup() == uniqueMarkupRegex;
         });
         if (files.length > 1) {
-            throw new IOException("Duplicate unique bloom files, uniqueMarkup: "
+            throw new FilterException("Duplicate unique bloom files, uniqueMarkup: "
                     + uniqueMarkupRegex);
         } else if (files.length == 0) {
-            throw new IOException("No such unique bloom cache file, uniqueMarkup:"
+            throw new FilterException("No such unique bloom cache file, uniqueMarkup:"
                     + uniqueMarkupRegex);
         }
         return files[0].getAbsolutePath();
