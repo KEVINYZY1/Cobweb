@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -28,6 +29,8 @@ public class URIBloomFilter implements Filter {
     private double fpp;
 
     private long expectedInsertions;
+
+    private String savePath;
 
     /**
      * 初始化一个bloom过滤器到内存中
@@ -167,12 +170,16 @@ public class URIBloomFilter implements Filter {
         BloomFileInfo info = new BloomFileInfo(
                 urlCounter.longValue(),
                 expectedInsertions, fpp);
-        String newName = targetDir + File.separator + info.toString()
+        savePath = targetDir + File.separator + info.toString()
                 + StaticField.TEMP_SUFFIX;
-        File file = new File(newName);
+        File file = new File(savePath);
         FileOutputStream fos = new FileOutputStream(file);
         bloomFilter.writeTo(fos);
         return file.getAbsolutePath();
+    }
+
+    public void delete() {
+        Optional.ofNullable(savePath).ifPresent(val -> new File(val).delete());
     }
 
     @Override

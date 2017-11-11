@@ -2,7 +2,8 @@ package com.xiongbeer.cobweb.zk.manager;
 
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.Configuration;
+import com.xiongbeer.cobweb.conf.StaticField;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.filter.Filter;
@@ -505,8 +506,8 @@ public class Manager {
                     if (unfinishedTaskMap.containsKey(key)) {
                         unfinishedTaskMap.remove(key);
                     }
-                    dfsManager.move(configuration.WAITING_TASKS_URLS + "/" + key,
-                            configuration.FINISHED_TASKS_URLS + "/" + key);
+                    dfsManager.move(configuration.get("waiting_tasks_urls") + "/" + key,
+                            configuration.get("finished_tasks_urls") + "/" + key);
                     taskManager.asyncReleaseTask(ZNodeStaticSetting.TASKS_PATH + '/' + key);
                     break;
                 case RUNNING:
@@ -528,7 +529,7 @@ public class Manager {
      * 但是无法保证znode中wvTasks与hdfs中waitingtasks中一致
      */
     private void syncWaitingTasks() throws IOException {
-        dfsManager.listFiles(configuration.WAITING_TASKS_URLS, false)
+        dfsManager.listFiles((String) configuration.get("waiting_tasks_urls"), false)
                 .stream()
                 .map(Files::getNameWithoutExtension)
                 .forEach(fileName -> taskManager.asyncSubmit(fileName));
@@ -546,7 +547,8 @@ public class Manager {
                 .filter(entry -> {
                     String name = entry.getKey();
                     Epoch epoch = entry.getValue();
-                    return !workersMap.containsKey(name) && epoch.getDifference() > configuration.WORKER_DEAD_TIME;
+                    return !workersMap.containsKey(name)
+                            && epoch.getDifference() > (int) configuration.get("worker_dead_time");
                 })
                 .forEach(entry -> {
                     String name = entry.getKey();
@@ -559,9 +561,9 @@ public class Manager {
      * 发布新的任务
      */
     private void publishNewTasks() throws IOException, CobwebRuntimeException.FilterOverflowException {
-        String tempSavePath = configuration.BLOOM_TEMP_DIR;
+        String tempSavePath = (String) configuration.get("bloom_temp_dir");
         List<String> hdfsUrlFiles = dfsManager.listFiles(
-                configuration.NEW_TASKS_URLS, false);
+                (String) configuration.get("new_tasks_urls"), false);
         if (hdfsUrlFiles.size() == 0) {
             /* 没有需要处理的新URL文件 */
             return;
@@ -619,7 +621,7 @@ public class Manager {
         Optional.ofNullable(tempSaveDir.listFiles()).ifPresent(files ->
                 Arrays.stream(files)
                         .filter(File::isFile)
-                        .filter(file -> !file.getAbsolutePath().endsWith(configuration.TEMP_SUFFIX))
+                        .filter(file -> !file.getAbsolutePath().endsWith(StaticField.TEMP_SUFFIX))
                         .forEach(File::delete)
         );
     }
@@ -633,11 +635,11 @@ public class Manager {
         Optional.ofNullable(dir.listFiles()).ifPresent(files ->
                 Arrays.stream(files)
                         .filter(File::isFile)
-                        .filter(file -> file.getAbsolutePath().endsWith(configuration.TEMP_SUFFIX))
+                        .filter(file -> file.getAbsolutePath().endsWith(StaticField.TEMP_SUFFIX))
                         .forEach(file -> {
                             String path = file.getAbsolutePath();
                             file.renameTo(new File(path.substring(0,
-                                    path.length() - configuration.TEMP_SUFFIX.length())));
+                                    path.length() - StaticField.TEMP_SUFFIX.length())));
                         })
         );
     }
@@ -663,7 +665,7 @@ public class Manager {
                 */
                 if (!dfsManager.exist(filePath)) {
                     dfsManager.uploadFile(filePath,
-                            configuration.WAITING_TASKS_URLS + '/' + file.getName());
+                            configuration.get("waiting_tasks_urls") + "/" + file.getName());
                 }
                 taskManager.asyncSubmit(file.getName());
             }
@@ -706,26 +708,26 @@ public class Manager {
      */
     public void backUpFilterCache() throws IOException {
         /* 备份之前删除原来的缓存文件 */
-        File localSave = new File(configuration.BLOOM_SAVE_PATH);
+        File localSave = new File((String) configuration.get("bloom_save_path"));
         Optional.ofNullable(localSave.listFiles()).ifPresent(files ->
                 Arrays.stream(files)
                         .filter(File::isFile)
                         .forEach(File::delete)
         );
         /* 备份至本地 */
-        String bloomFilePath = filter.save(configuration.BLOOM_SAVE_PATH);
+        String bloomFilePath = filter.save((String) configuration.get("bloom_save_path"));
         /* 上传至dfs */
-        dfsManager.uploadFile(bloomFilePath, configuration.BLOOM_BACKUP_PATH);
+        dfsManager.uploadFile(bloomFilePath, (String) configuration.get("bloom_backup_path"));
 
         /* 删除dfs上旧的缓存文件，去除新缓存文件的TEMP_SUFFIX后缀 */
         List<String> cacheFiles
-                = dfsManager.listFiles(configuration.BLOOM_BACKUP_PATH, false);
+                = dfsManager.listFiles((String) configuration.get("bloom_backup_path"), false);
         for (String cache : cacheFiles) {
-            if (!cache.endsWith(configuration.TEMP_SUFFIX)) {
+            if (!cache.endsWith(StaticField.TEMP_SUFFIX)) {
                 dfsManager.delete(cache, false);
             } else {
                 String newName = cache.substring(0,
-                        cache.length() - configuration.TEMP_SUFFIX.length());
+                        cache.length() - StaticField.TEMP_SUFFIX.length());
                 dfsManager.move(cache, newName);
             }
         }
@@ -758,14 +760,14 @@ public class Manager {
                             /* 到filter中确认url是不是已经存在，已经存在就丢弃 */
                             if (filter.put(line)) {
                                 md5.update(newLine);
-                                if (newUrlCounter.get() <= configuration.TASK_URLS_NUM) {
+                                if (newUrlCounter.get() <= (int) configuration.get("task_urls_num")) {
                                     newUrls.append(newLine);
                                     newUrlCounter.incrementAndGet();
                                 } else {
                                     /* 文件名是根据其内容生成的md5值 */
                                     String urlFileName = saveDir + File.separator
                                             + md5.toString()
-                                            + configuration.TEMP_SUFFIX;
+                                            + StaticField.TEMP_SUFFIX;
                                     Files.write(newUrls.toString().getBytes()
                                             , new File(urlFileName));
                                     newUrls.delete(0, newUrls.length());
@@ -782,7 +784,7 @@ public class Manager {
                             if (newUrls.length() > 0) {
                                 String urlFileName = saveDir + File.separator
                                         + md5.toString()
-                                        + configuration.TEMP_SUFFIX;
+                                        + StaticField.TEMP_SUFFIX;
                                 try {
                                     Files.write(newUrls.toString().getBytes()
                                             , new File(urlFileName));

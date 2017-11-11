@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.check;
 
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.saver.dfs.HDFSManager;
@@ -62,11 +62,12 @@ public class SelfTest {
     public static CuratorFramework checkAndGetZK() {
         CuratorFramework client;
         try {
-            RetryPolicy retryPolicy =
-                    new ExponentialBackoffRetry(configuration.ZK_RETRY_INTERVAL, configuration.ZK_RETRY_TIMES);
+            RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+                    (int) configuration.get("zk_retry_interval"), (int) configuration.get("zk_retry_times"));
             client = CuratorFrameworkFactory
-                    .newClient(configuration.ZK_CONNECT_STRING
-                            , configuration.ZK_SESSION_TIMEOUT, configuration.ZK_INIT_TIMEOUT, retryPolicy);
+                    .newClient((String) configuration.get("zk_connect_string")
+                            , (int) configuration.get("zk_session_timeout")
+                            , (int) configuration.get("zk_init_timeout"), retryPolicy);
             client.start();
             client.checkExists().forPath(ZNodeStaticSetting.TASKS_PATH);
             client.checkExists().forPath(ZNodeStaticSetting.MANAGERS_PATH);
@@ -87,15 +88,16 @@ public class SelfTest {
     public static DFSManager checkAndGetDFS() {
         DFSManager hdfsManager;
         try {
-            hdfsManager = new HDFSManager(configuration.HDFS_SYSTEM_CONF, configuration.HDFS_SYSTEM_PATH);
-            hdfsManager.exist(configuration.BLOOM_BACKUP_PATH);
-            hdfsManager.exist(configuration.FINISHED_TASKS_URLS);
-            hdfsManager.exist(configuration.WAITING_TASKS_URLS);
-            hdfsManager.exist(configuration.NEW_TASKS_URLS);
+            hdfsManager = new HDFSManager((org.apache.hadoop.conf.Configuration) configuration.get("hdfs_system_conf")
+                    , (String) configuration.get("hdfs_system_path"));
+            hdfsManager.exist((String) configuration.get("bloom_backup_path"));
+            hdfsManager.exist((String) configuration.get("finished_tasks_urls"));
+            hdfsManager.exist((String) configuration.get("waiting_tasks_urls"));
+            hdfsManager.exist((String) configuration.get("new_tasks_urls"));
         } catch (Throwable e) {
             hdfsManager = null;
             logger.error(e.getMessage());
         }
-        return hdfsManager ;
+        return hdfsManager;
     }
 }

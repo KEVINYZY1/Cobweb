@@ -36,7 +36,7 @@ public enum CobwebMain {
 
     private Configuration configuration;
 
-    private ScheduledExecutorService manageExector = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService manageExecutor = Executors.newScheduledThreadPool(1);
 
     CobwebMain() {
         configuration = Configuration.INSTANCE;
@@ -54,7 +54,7 @@ public enum CobwebMain {
      */
     private void run() {
         manager = Manager.getInstance(client, serverId, dfsManager, configuration.getUrlFilter());
-        manageExector.scheduleAtFixedRate(() -> {
+        manageExecutor.scheduleAtFixedRate(() -> {
             try {
                 manager.manage();
             } catch (InterruptedException e) {
@@ -72,7 +72,7 @@ public enum CobwebMain {
             try {
                 logger.info("stopping manager...");
                 manager.stop();
-                manageExector.shutdownNow();
+                manageExecutor.shutdownNow();
                 client.close();
                 dfsManager.close();
             } catch (Throwable e) {

@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.api.job;
 
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.api.SimpleJob;
 import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
@@ -14,6 +14,8 @@ import java.util.List;
 public class DFSJob implements SimpleJob {
     private DFSManager dfsManager;
 
+    private Configuration configuration = Configuration.INSTANCE;
+
     public DFSJob(DFSManager dfsManager) {
         this.dfsManager = dfsManager;
     }
@@ -21,7 +23,7 @@ public class DFSJob implements SimpleJob {
     public void EmptyTrash() {
         try {
             List<String> files
-                    = dfsManager.listFiles(Configuration.INSTANCE.FINISHED_TASKS_URLS, false);
+                    = dfsManager.listFiles((String) configuration.get("finished_tasks_urls"), false);
             for (String file : files) {
                 dfsManager.delete(file, false);
             }

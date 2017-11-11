@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.service.local;
 
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.saver.dfs.HDFSManager;
 import com.xiongbeer.cobweb.service.protocol.Client;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 /**
  * 提供给用户的使用接口，引导入口
- *
+ * <p>
  * Created by shaoxiong on 17-4-26.
  */
 public class CrawlerBootstrap extends Bootstrap {
@@ -30,13 +30,14 @@ public class CrawlerBootstrap extends Bootstrap {
 
     private static final String savePath;
 
-    static{
-    	/* 暂存至本地的TEMP_DIR */
-    	savePath = configuration.TEMP_DIR;
-    	dfsManager = new HDFSManager(configuration.HDFS_SYSTEM_CONF, configuration.HDFS_SYSTEM_PATH);
+    static {
+        /* 暂存至本地的TEMP_DIR */
+        savePath = (String) configuration.get("temp_dir");
+        dfsManager = new HDFSManager((org.apache.hadoop.conf.Configuration) configuration.get("hdfs_system_conf")
+                , (String) configuration.get("hdfs_system_path"));
     }
-    
-    public CrawlerBootstrap(Action action){
+
+    public CrawlerBootstrap(Action action) {
         super.client = new Client(action);
     }
 
@@ -48,8 +49,8 @@ public class CrawlerBootstrap extends Bootstrap {
         super.client.sendData(builder.build());
     }
 
-    public String getSavePath(){
-    	return savePath;
+    public String getSavePath() {
+        return savePath;
     }
 
     /**
@@ -63,18 +64,18 @@ public class CrawlerBootstrap extends Bootstrap {
         String path = savePath + File.separator;
         String tempName = UUID.randomUUID().toString();
         MD5Maker md5Maker = new MD5Maker();
-        File file = new File(path+tempName);
+        File file = new File(path + tempName);
         FileOutputStream fos = new FileOutputStream(file);
         FileChannel channel = fos.getChannel();
         ByteBuffer outBuffer = ByteBuffer.allocate(WRITE_LENGTH);
-        for(String url:newUrls){
+        for (String url : newUrls) {
             String line = url + System.getProperty("line.separator");
             md5Maker.update(line);
             byte[] data = line.getBytes();
             int len = data.length;
-            for(int i=0; i<=len/WRITE_LENGTH; ++i){
-                outBuffer.put(data, i*WRITE_LENGTH,
-                        i==len/WRITE_LENGTH?len%WRITE_LENGTH:WRITE_LENGTH);
+            for (int i = 0; i <= len / WRITE_LENGTH; ++i) {
+                outBuffer.put(data, i * WRITE_LENGTH,
+                        i == len / WRITE_LENGTH ? len % WRITE_LENGTH : WRITE_LENGTH);
                 outBuffer.flip();
                 channel.write(outBuffer);
                 outBuffer.clear();
@@ -83,9 +84,9 @@ public class CrawlerBootstrap extends Bootstrap {
         channel.close();
         fos.close();
         String newName = md5Maker.toString();
-        file.renameTo(new File(path+newName));
+        file.renameTo(new File(path + newName));
         /* 上传至HDFS */
-        dfsManager.uploadFile(path+newName, Configuration.INSTANCE.NEW_TASKS_URLS);
+        dfsManager.uploadFile(path + newName, (String) configuration.get("new_tasks_urls"));
         /* 上传成功后删除临时文件 */
         file.delete();
         return path;

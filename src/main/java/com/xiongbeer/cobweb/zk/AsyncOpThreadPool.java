@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.zk;
 
-import com.xiongbeer.cobweb.Configuration;
+import com.xiongbeer.cobweb.conf.Configuration;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,8 +15,10 @@ public class AsyncOpThreadPool {
 
     private static AsyncOpThreadPool asyncOpThreadPool;
 
+    private Configuration configuration = Configuration.INSTANCE;
+
     private AsyncOpThreadPool() {
-        threadPool = Executors.newFixedThreadPool(Configuration.INSTANCE.LOCAL_ASYNC_THREAD_NUM);
+        threadPool = Executors.newFixedThreadPool((Integer) configuration.get("local_async_thread_num"));
     }
 
     public static synchronized AsyncOpThreadPool getInstance() {

@@ -2,7 +2,9 @@ package com.xiongbeer.cobweb.zk.resources;
 
 import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
+import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.filter.URIBloomFilter;
+import com.xiongbeer.cobweb.log.RelaxedTransaction;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -26,6 +28,8 @@ public enum FilterINodesManagePool {
     private CuratorFramework client;
 
     private static final Logger logger = LoggerFactory.getLogger(FilterINodesManagePool.class);
+
+    private Configuration configuration = Configuration.INSTANCE;
 
     FilterINodesManagePool() {
         nodesPool = new ConcurrentHashMap<>();
@@ -63,22 +67,22 @@ public enum FilterINodesManagePool {
         }
     }
 
-    public boolean createNewBloomFilter(long expectedInsertions, double fpp, String group, int uniqueMarkup) {
-        boolean res = false;
-        try {
-            URIBloomFilter bloomFilter = new URIBloomFilter(expectedInsertions, fpp);
-            bloomFilter.save((String) Configuration.INSTANCE.get(""));
-            client.create()
-                    .creatingParentsIfNeeded()
-                    .withMode(CreateMode.PERSISTENT)
-                    .forPath(makeFilterZNodePath(group, uniqueMarkup));
-            FilterINode newNode = new FilterINode(Instant.now(), Instant.now(), group, uniqueMarkup);
-            nodesPool.put(uniqueMarkup, newNode);
-            res = true;
-        } catch (Exception e) {
-            logger.error("create a new filter failed. ", e.getMessage());
-        }
-        return res;
+    public void createNewBloomFilter(long expectedInsertions, double fpp, String group, int uniqueMarkup) {
+        URIBloomFilter bloomFilter = new URIBloomFilter(expectedInsertions, fpp);
+        RelaxedTransaction.doProcess(() -> {
+            try {
+                bloomFilter.save((String) configuration.get("bloom_local_save_path"));
+                client.create()
+                        .creatingParentsIfNeeded()
+                        .withMode(CreateMode.PERSISTENT)
+                        .forPath(makeFilterZNodePath(group, uniqueMarkup));
+            } catch (Exception e) {
+                throw new CobwebRuntimeException
+                        .OperationFailedException("create a new filter node failed. \n" + e.getMessage());
+            }
+        }, bloomFilter::delete, logger);
+        INode newNode = new FilterINode(Instant.now(), Instant.now(), group, uniqueMarkup);
+        nodesPool.put(uniqueMarkup, newNode);
     }
 
     private String makeFilterZNodePath(String group, int uniqueMarkup) {

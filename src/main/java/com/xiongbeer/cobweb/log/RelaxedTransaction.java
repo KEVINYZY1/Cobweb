@@ -21,7 +21,7 @@ public class RelaxedTransaction implements Transaction {
         try {
             doOp.roll();
         } catch (CobwebRuntimeException.OperationFailedException e) {
-            logger.error(e.getMessage());
+            logger.error("roll transaction failed, now rollback...", e);
             undoOp.rollback();
         }
     }

@@ -1,8 +1,8 @@
 package com.xiongbeer.cobweb.api.job;
 
-import com.xiongbeer.cobweb.Configuration;
-import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.api.SimpleJob;
+import com.xiongbeer.cobweb.conf.Configuration;
+import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import org.apache.curator.framework.CuratorFramework;
@@ -71,7 +71,7 @@ public class TaskJob implements SimpleJob {
 
     public void removeFromHDFS(String taskName)
             throws IOException {
-        dfsManager.delete(configuration.WAITING_TASKS_URLS + '/' + taskName, false);
+        dfsManager.delete((String) configuration.get("waiting_tasks_urls") + '/' + taskName, false);
     }
 
     public List<String> getTasksName() throws Exception {

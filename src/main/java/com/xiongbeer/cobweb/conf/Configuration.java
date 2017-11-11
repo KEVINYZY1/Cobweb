@@ -2,14 +2,21 @@ package com.xiongbeer.cobweb.conf;
 
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
+import com.google.common.base.Joiner;
+import com.google.common.io.Files;
+import com.xiongbeer.cobweb.utils.InitLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,16 +33,16 @@ public enum Configuration {
     private Logger logger = LoggerFactory.getLogger(Configuration.class);
 
     Configuration() {
-        Optional<String> hadoopEnvPath = Optional.of(System.getenv("HADOOP_HOME"));
-        logger.info("load hadoop environment path : " + hadoopEnvPath.get());
+        InitLogger.init();
         Optional<String> defaultEnvPath = Optional.of(System.getenv("COBWEB_HOME"));
         logger.info("load cobweb environment path : " + defaultEnvPath.get());
         logger.info("loading default setting...");
-        init(defaultEnvPath.get());
         try {
+            init(defaultEnvPath.get());
             logger.info("loading user setting...");
-            loadConf(Paths.get(defaultEnvPath.get(), CONF_PATH.toString()).toString(), hadoopEnvPath.get());
-        } catch (FileNotFoundException | YamlException e) {
+            loadConf(Paths.get(defaultEnvPath.get(), CONF_PATH.toString()).toString());
+            loadHDFSConf();
+        } catch (IOException e) {
             logger.error("load configuration failed. ", e);
             System.exit(1);
         }
@@ -44,11 +51,11 @@ public enum Configuration {
     }
 
     public Object get(String setting) {
-        return properties.get(setting);
+        return properties.get(setting).getResource();
     }
 
-    private void loadConf(String cobwebConfPath, String hadoopConfPath) throws FileNotFoundException, YamlException {
-        YamlReader reader = new YamlReader(new FileReader(cobwebConfPath));
+    private void loadConf(String cobwebRootPath) throws FileNotFoundException, YamlException {
+        YamlReader reader = new YamlReader(new FileReader(cobwebRootPath));
         while (true) {
             Map contact = (Map) reader.read();
             if (contact == null) {
@@ -56,27 +63,32 @@ public enum Configuration {
             }
             String name = (String) contact.get("name");
             String textValue = (String) contact.get("value");
-            Object value = getValue(textValue, hadoopConfPath);
+            Object value = getValue(name, textValue);
             Setting property = new Setting(value, name);
             properties.put(name, property);
         }
     }
 
-    public void init(String cobwebConfPath) {
-        defaultLoad("bloom_save_path", cobwebConfPath + "/data/bloom");
+    public void init(String cobwebRootPath) throws IOException {
+        defaultLoad("hdfs_system_path", "default");
+
+        defaultLoad("bloom_local_save_path", cobwebRootPath + "/data/bloom");
         defaultLoad("hdfs_root", "/cobweb");
+
         String root = (String) properties.get("hdfs_root").getResource();
         defaultLoad("waiting_tasks_urls", root + "/tasks/waitingtasks");
         defaultLoad("finished_tasks_urls", root + "/tasks/finishedtasks");
         defaultLoad("new_tasks_urls", root + "/tasks/newurls");
-        defaultLoad("new_tasks_urls", root + "/tasks/newurls");
+
+        String cobwebConfPath = cobwebRootPath + File.separator + "conf";
+        defaultLoad("zk_connect_string"
+                , getZKConnectString(cobwebConfPath + File.separator + StaticField.ZK_SERVER_FILE_NAME));
 
         /* bloom过滤器会定时备份，此为其存放的路径 */
         defaultLoad("bloom_backup_path", root + "/bloom");
 
-
         /* 临时文件（UrlFile）的存放的本地路径 */
-        defaultLoad("temp_dir", cobwebConfPath + "/data/temp");
+        defaultLoad("temp_dir", cobwebRootPath + "/data/temp");
 
         /* Worker与ZooKeeper断开连接后，经过DEADTIME后认为Worker死亡 */
         defaultLoad("worker_dead_time", 120);
@@ -94,7 +106,7 @@ public enum Configuration {
         defaultLoad("local_shell_port", 22001);
 
         /* bloom过滤器过滤url文件的暂存位置 */
-        defaultLoad("bloom_temp_dir", cobwebConfPath + "/data/bloom/temp");
+        defaultLoad("bloom_temp_dir", cobwebRootPath + "/data/bloom/temp");
 
         /* 均衡负载server端默认端口 */
         defaultLoad("balance_server_port", 8081);
@@ -131,18 +143,14 @@ public enum Configuration {
         properties.put(settingName, new Setting(resource, settingName));
     }
 
-    private Object getValue(String textValue, String hadoopConfPath) {
-        switch (textValue) {
-            case "hdfs_system_conf":
-                org.apache.hadoop.conf.Configuration res = new org.apache.hadoop.conf.Configuration();
-                // TODO 非默认情况
+    private Object getValue(String textName, String textValue) {
+        switch (textName) {
+            case "hdfs_system_path":
                 if (textValue.equals("default")) {
-                    res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "core-site.xml").toString());
-                    res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "hdfs-site.xml").toString());
-                    res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "mapred-site.xml").toString());
-                    res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "yarn-site.xml").toString());
+                    Optional<String> defaultHadoopPath = Optional.of(System.getenv("HADOOP_HOME"));
+                    logger.info("load cobweb environment path : " + defaultHadoopPath.get());
+                    return defaultHadoopPath.get();
                 }
-                return res;
             case "check_time":
             case "task_urls_num":
             case "zk_session_timeout":
@@ -155,6 +163,21 @@ public enum Configuration {
             default:
                 return textValue;
         }
+    }
+
+    private String getZKConnectString(String filePath) throws IOException {
+        List<String> content = Files.readLines(new File(filePath), Charset.defaultCharset());
+        return Joiner.on(',').skipNulls().join(content) + ZNodeStaticSetting.ROOT_PATH;
+    }
+
+    private void loadHDFSConf() {
+        String hadoopConfPath = (String) get("hdfs_system_path");
+        org.apache.hadoop.conf.Configuration res = new org.apache.hadoop.conf.Configuration();
+        res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "core-site.xml").toString());
+        res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "hdfs-site.xml").toString());
+        res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "mapred-site.xml").toString());
+        res.addResource(Paths.get(hadoopConfPath, "etc", "hadoop", "yarn-site.xml").toString());
+        defaultLoad("hdfs_system_conf", res);
     }
 
     private static class Setting {
