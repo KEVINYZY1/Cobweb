@@ -6,7 +6,7 @@ import com.xiongbeer.cobweb.service.protocol.handler.LoginAuthRespHandler;
 import com.xiongbeer.cobweb.service.protocol.handler.ShellRespHandler;
 import com.xiongbeer.cobweb.service.protocol.handler.WorkerProxyHandler;
 import com.xiongbeer.cobweb.service.protocol.message.ProcessDataProto.ProcessData;
-import com.xiongbeer.cobweb.zk.worker.Worker;
+import com.xiongbeer.cobweb.discovery.worker.Worker;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

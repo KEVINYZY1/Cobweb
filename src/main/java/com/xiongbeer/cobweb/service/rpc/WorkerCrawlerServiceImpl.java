@@ -1,10 +1,10 @@
 package com.xiongbeer.cobweb.service.rpc;
 
 import com.sun.istack.Nullable;
-import com.xiongbeer.cobweb.zk.task.Epoch;
-import com.xiongbeer.cobweb.zk.task.Task;
-import com.xiongbeer.cobweb.zk.task.TaskData;
-import com.xiongbeer.cobweb.zk.worker.Worker;
+import com.xiongbeer.cobweb.discovery.task.Epoch;
+import com.xiongbeer.cobweb.discovery.task.Task;
+import com.xiongbeer.cobweb.discovery.task.TaskData;
+import com.xiongbeer.cobweb.discovery.worker.Worker;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

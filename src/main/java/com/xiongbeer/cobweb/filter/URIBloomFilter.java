@@ -32,6 +32,8 @@ public class URIBloomFilter implements Filter {
 
     private String savePath;
 
+    private BloomFileInfo bloomFileInfo;
+
     /**
      * 初始化一个bloom过滤器到内存中
      *
@@ -39,10 +41,11 @@ public class URIBloomFilter implements Filter {
      * @param fpp                误报概率
      */
     public URIBloomFilter(long expectedInsertions, double fpp) {
-        urlCounter = new AtomicLong(0);
+        this.bloomFileInfo = new BloomFileInfo(0, expectedInsertions, fpp);
+        this.urlCounter = new AtomicLong(0);
         this.expectedInsertions = expectedInsertions;
         this.fpp = fpp;
-        bloomFilter = BloomFilter.create(
+        this.bloomFilter = BloomFilter.create(
                 Funnels.stringFunnel(Charset.defaultCharset()), expectedInsertions, fpp);
     }
 
@@ -80,10 +83,10 @@ public class URIBloomFilter implements Filter {
         File dir = new File(cacheDir);
         String bloomFileName = getBloomFileName(dir, uniqueMarkupRegex);
         File file = new File(cacheDir + File.separator + bloomFileName);
-        BloomFileInfo info = new BloomFileInfo(bloomFileName);
-        urlCounter = new AtomicLong(info.getUrlCounter());
-        expectedInsertions = info.getExpectedInsertions();
-        fpp = info.getFpp();
+        this.bloomFileInfo = new BloomFileInfo(bloomFileName);
+        this.urlCounter = new AtomicLong(bloomFileInfo.getUrlCounter());
+        this.expectedInsertions = bloomFileInfo.getExpectedInsertions();
+        this.fpp = bloomFileInfo.getFpp();
         load(file.getAbsolutePath());
     }
 
@@ -167,10 +170,7 @@ public class URIBloomFilter implements Filter {
      * @throws IOException
      */
     public String save(String targetDir) throws IOException {
-        BloomFileInfo info = new BloomFileInfo(
-                urlCounter.longValue(),
-                expectedInsertions, fpp);
-        savePath = targetDir + File.separator + info.toString()
+        savePath = targetDir + File.separator + bloomFileInfo.toString()
                 + StaticField.TEMP_SUFFIX;
         File file = new File(savePath);
         FileOutputStream fos = new FileOutputStream(file);
@@ -187,6 +187,11 @@ public class URIBloomFilter implements Filter {
         File file = new File(path);
         FileInputStream fis = new FileInputStream(file);
         bloomFilter = BloomFilter.readFrom(fis, Funnels.stringFunnel(Charset.defaultCharset()));
+    }
+
+    @Override
+    public int getMarkup() {
+        return bloomFileInfo.getMarkup();
     }
 
     /**
@@ -206,7 +211,7 @@ public class URIBloomFilter implements Filter {
             flag = bloomFilter.put(md5Value);
         }
         if (flag) {
-            urlCounter.incrementAndGet();
+            bloomFileInfo.setUrlCounter(urlCounter.incrementAndGet());
         }
         return flag;
     }

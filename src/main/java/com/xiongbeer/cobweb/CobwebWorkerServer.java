@@ -5,7 +5,7 @@ import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.service.rpc.ServiceServer;
 import com.xiongbeer.cobweb.utils.IdProvider;
 import com.xiongbeer.cobweb.utils.InitLogger;
-import com.xiongbeer.cobweb.zk.worker.Worker;
+import com.xiongbeer.cobweb.discovery.worker.Worker;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +72,7 @@ public enum CobwebWorkerServer {
             try {
                 logger.info("stopping server...");
                 server.stop();
-                logger.info("stopping zk client...");
+                logger.info("stopping discovery client...");
                 client.close();
                 logger.info("stopping other service...");
                 dfsManager.close();

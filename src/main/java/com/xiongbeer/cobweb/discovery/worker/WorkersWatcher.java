@@ -1,4 +1,4 @@
-package com.xiongbeer.cobweb.zk.worker;
+package com.xiongbeer.cobweb.discovery.worker;
 
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import org.apache.curator.framework.CuratorFramework;

@@ -1,4 +1,4 @@
-package com.xiongbeer.cobweb.zk.resources;
+package com.xiongbeer.cobweb.discovery.resources;
 
 import com.xiongbeer.cobweb.conf.Configuration;
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;

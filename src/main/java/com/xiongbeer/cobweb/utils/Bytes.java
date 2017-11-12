@@ -4,6 +4,10 @@ package com.xiongbeer.cobweb.utils;
  * Created by shaoxiong on 17-10-30.
  */
 public class Bytes {
+    private Bytes() {
+
+    }
+
     public static byte[] shortToBytes(short val) {
         byte[] res = new byte[2];
         res[0] = (byte) (val & 0xff);

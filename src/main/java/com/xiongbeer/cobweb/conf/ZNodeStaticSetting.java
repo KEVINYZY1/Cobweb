@@ -3,7 +3,11 @@ package com.xiongbeer.cobweb.conf;
 /**
  * Created by shaoxiong on 17-4-6.
  */
-public class ZNodeStaticSetting {
+final public class ZNodeStaticSetting {
+    private ZNodeStaticSetting() {
+
+    }
+
     public static final String PATH_SEPARATOR = "/";
 
     public static final String ROOT_PATH = "/webveins";

@@ -1,4 +1,4 @@
-package com.xiongbeer.cobweb.zk.resources;
+package com.xiongbeer.cobweb.discovery.resources;
 
 /**
  * Created by shaoxiong on 17-11-5.

@@ -6,7 +6,7 @@ import com.xiongbeer.cobweb.api.jsondata.JData;
 import com.xiongbeer.cobweb.api.jsondata.TaskJson;
 import com.xiongbeer.cobweb.exception.CobwebRuntimeException.OperationFailedException;
 
-import com.xiongbeer.cobweb.zk.task.TaskData;
+import com.xiongbeer.cobweb.discovery.task.TaskData;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;

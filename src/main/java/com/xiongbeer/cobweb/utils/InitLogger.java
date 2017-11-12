@@ -9,6 +9,9 @@ import org.apache.log4j.PropertyConfigurator;
 import java.util.Properties;
 
 public class InitLogger {
+    private InitLogger() {
+    }
+
     public static void init() {
         Properties prop = new Properties();
 

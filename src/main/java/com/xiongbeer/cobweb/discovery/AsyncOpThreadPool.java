@@ -1,4 +1,4 @@
-package com.xiongbeer.cobweb.zk;
+package com.xiongbeer.cobweb.discovery;
 
 import com.xiongbeer.cobweb.conf.Configuration;
 

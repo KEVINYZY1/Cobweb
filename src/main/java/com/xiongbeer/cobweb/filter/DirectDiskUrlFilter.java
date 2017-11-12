@@ -102,6 +102,11 @@ public class DirectDiskUrlFilter implements Filter {
         // jump
     }
 
+    @Override
+    public int getMarkup() {
+        return 0;
+    }
+
     public boolean mightContain(String url) throws IOException {
         byte[] bytes = Hashing.murmur3_128().hashObject(url, funnel).asBytes();
         long hash1 = this.lowerEight(bytes);

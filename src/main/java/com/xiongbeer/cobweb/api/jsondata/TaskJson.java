@@ -1,6 +1,6 @@
 package com.xiongbeer.cobweb.api.jsondata;
 
-import com.xiongbeer.cobweb.zk.task.Task;
+import com.xiongbeer.cobweb.discovery.task.Task;
 
 import java.util.Date;
 

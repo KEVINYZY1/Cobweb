@@ -1,8 +1,8 @@
-package com.xiongbeer.cobweb.zk.task;
+package com.xiongbeer.cobweb.discovery.task;
 
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.utils.Async;
-import com.xiongbeer.cobweb.zk.AsyncOpThreadPool;
+import com.xiongbeer.cobweb.discovery.AsyncOpThreadPool;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundCallback;
 import org.apache.curator.framework.api.CuratorEvent;

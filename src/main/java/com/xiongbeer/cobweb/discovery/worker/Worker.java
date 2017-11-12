@@ -1,11 +1,11 @@
-package com.xiongbeer.cobweb.zk.worker;
+package com.xiongbeer.cobweb.discovery.worker;
 
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import com.xiongbeer.cobweb.exception.CobwebRuntimeException;
-import com.xiongbeer.cobweb.zk.task.Epoch;
-import com.xiongbeer.cobweb.zk.task.TaskData;
-import com.xiongbeer.cobweb.zk.task.TaskWatcher;
-import com.xiongbeer.cobweb.zk.task.TaskWorker;
+import com.xiongbeer.cobweb.discovery.task.Epoch;
+import com.xiongbeer.cobweb.discovery.task.TaskData;
+import com.xiongbeer.cobweb.discovery.task.TaskWatcher;
+import com.xiongbeer.cobweb.discovery.task.TaskWorker;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;

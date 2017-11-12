@@ -1,4 +1,4 @@
-package com.xiongbeer.cobweb.zk.task;
+package com.xiongbeer.cobweb.discovery.task;
 
 import com.xiongbeer.cobweb.conf.ZNodeStaticSetting;
 import org.apache.curator.framework.CuratorFramework;

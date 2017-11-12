@@ -1,4 +1,4 @@
-package com.xiongbeer.cobweb.zk.task;
+package com.xiongbeer.cobweb.discovery.task;
 
 import com.alibaba.fastjson.JSON;
 

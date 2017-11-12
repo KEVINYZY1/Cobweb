@@ -4,7 +4,7 @@ import com.xiongbeer.cobweb.check.SelfTest;
 import com.xiongbeer.cobweb.saver.dfs.DFSManager;
 import com.xiongbeer.cobweb.utils.IdProvider;
 import com.xiongbeer.cobweb.utils.InitLogger;
-import com.xiongbeer.cobweb.zk.manager.Manager;
+import com.xiongbeer.cobweb.discovery.manager.Manager;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

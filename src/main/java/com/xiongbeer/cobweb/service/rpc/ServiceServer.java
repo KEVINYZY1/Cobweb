@@ -2,7 +2,7 @@ package com.xiongbeer.cobweb.service.rpc;
 
 import com.xiongbeer.cobweb.service.rpc.LocalWorkerCrawlerServiceBase.Iface;
 import com.xiongbeer.cobweb.service.rpc.LocalWorkerCrawlerServiceBase.Processor;
-import com.xiongbeer.cobweb.zk.worker.Worker;
+import com.xiongbeer.cobweb.discovery.worker.Worker;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;

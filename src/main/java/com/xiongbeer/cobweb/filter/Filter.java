@@ -35,4 +35,11 @@ public interface Filter {
      * @throws IOException
      */
     void load(String src) throws IOException;
+
+    /**
+     * 获取唯一的标识
+     *
+     * @return
+     */
+    int getMarkup();
 }
